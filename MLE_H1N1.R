@@ -50,9 +50,7 @@ for (ferret in donor_names){
     mutate(type = if_else(dpe %in% c(0, 2, 4, 6, 8, 10), "measured", "predicted")) %>%
     arrange(dpe) %>%
     ## ensure that times are numeric for future integration
-    mutate(dpe = as.numeric(dpe)) %>%
-    ## add in non-log-transformed nw titers
-    mutate(non_log_nw_titer = 10^(nw_titer))
+    mutate(dpe = as.numeric(dpe))
   ferret_preds[[ferret]] <- combo
 }
 
