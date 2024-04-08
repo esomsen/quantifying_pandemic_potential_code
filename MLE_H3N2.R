@@ -2,7 +2,7 @@ library(tidyverse)
 library(DescTools)
 
 ## import data
-ferrets <- read_csv("/home/esomsen/within-host/20230323_TD50NWTiters.csv", col_names = T, show_col_types = F)
+ferrets <- read_csv("/home/esomsen/within-host/H3N2_raw_titer_data.csv", col_names = T, show_col_types = F)
 colnames(ferrets) <- c("Ferret_ID", "DI_RC", "DI_RC_Pair", "Dose", "time", "nw_titer", "donor_dose")
 ## removing tests at 13 and 14 dpi because we assume that there is no impact on transmission for tests at or below LOD
 ferrets <- ferrets %>%
