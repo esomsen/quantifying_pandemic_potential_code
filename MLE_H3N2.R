@@ -2,8 +2,11 @@ library(tidyverse)
 library(DescTools)
 
 ## import data
-ferrets <- read_csv("/home/esomsen/within-host/H1N1_raw_titer_data.csv", col_names = T, show_col_types = F)
+ferrets <- read_csv("/home/esomsen/within-host/20230323_TD50NWTiters.csv", col_names = T, show_col_types = F)
 colnames(ferrets) <- c("Ferret_ID", "DI_RC", "DI_RC_Pair", "Dose", "time", "nw_titer", "donor_dose")
+## removing tests at 13 and 14 dpi because we assume that there is no impact on transmission for tests at or below LOD
+ferrets <- ferrets %>%
+  filter(!time %in% c(13, 14))
 
 DI_ferrets <- ferrets %>%
   ## keep only donor ferrets
@@ -12,6 +15,14 @@ DI_ferrets <- ferrets %>%
   mutate(Ferret_ID = as.factor(Ferret_ID)) %>%
   ## create column for days post exposure
   mutate(dpe = time - 1)
+
+## removing F6335 because of missing data point
+## remove all donors who never became infected, plus their pair (the 10^0 animals)
+DI_ferrets <- DI_ferrets %>%
+  filter(Ferret_ID != "F6335") %>%
+  filter(Dose != "10^0") %>%
+  ungroup()
+
 donor_names <- unique(DI_ferrets$Ferret_ID)
 
 LOD <- 0.5
@@ -163,4 +174,4 @@ CI_cutoff <- max - 1.92
 find_CIs <- near(CI_cutoff, log_probs_df$prob, tol = 0.053) ## toggle tol to find the two values closest to the CI cutoff
 CIs <- log_probs_df[find_CIs,]
 
-save.image(file = "s_MLE_H1N1.RData")
+save.image(file = "s_MLE_H3N2.RData")
