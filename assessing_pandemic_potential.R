@@ -109,7 +109,7 @@ for (ferret in H1N1_recipient_names){
   data$constant_foi <- lambda_vals
   ## compute the probability of transmission given this force of infection
   data$prob_transmission <- calculate_pr_contact_pos(data$constant_foi)
-  H3N2_transmission_probs[[ferret]] <- data
+  H1N1_transmission_probs[[ferret]] <- data
 }
 
 ## record number of infected contacts for each ferret
