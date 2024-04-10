@@ -2,11 +2,8 @@ library(tidyverse)
 library(DescTools)
 
 ## import data
-ferrets <- read_csv("/home/esomsen/within-host/H3N2_raw_titer_data.csv", col_names = T, show_col_types = F)
+ferrets <- read_csv("/home/esomsen/within-host/H1N1_raw_titer_data.csv", col_names = T, show_col_types = F)
 colnames(ferrets) <- c("Ferret_ID", "DI_RC", "DI_RC_Pair", "Dose", "time", "nw_titer", "donor_dose")
-## removing tests at 13 and 14 dpi because we assume that there is no impact on transmission for tests at or below LOD
-ferrets <- ferrets %>%
-  filter(!time %in% c(13, 14))
 
 DI_ferrets <- ferrets %>%
   ## keep only donor ferrets
@@ -15,14 +12,6 @@ DI_ferrets <- ferrets %>%
   mutate(Ferret_ID = as.factor(Ferret_ID)) %>%
   ## create column for days post exposure
   mutate(dpe = time - 1)
-
-## removing F6335 because of missing data point
-## remove all donors who never became infected, plus their pair (the 10^0 animals)
-DI_ferrets <- DI_ferrets %>%
-  filter(Ferret_ID != "F6335") %>%
-  filter(Dose != "10^0") %>%
-  ungroup()
-
 donor_names <- unique(DI_ferrets$Ferret_ID)
 
 LOD <- 0.5
@@ -80,9 +69,6 @@ s_vals <- seq(0, 0.2, 0.001)
 log_probs <- c()
 
 for (i in s_vals){
-  ## create dfs
-  integral_dfs <- vector("list", length(donor_names))
-  names(integral_dfs) <- donor_names
   ##loop through each ferret
   for (ferret in donor_names){
     ferret_data <- ferret_preds[[ferret]]
@@ -95,7 +81,7 @@ for (i in s_vals){
       xval <- VL$dpe
       yval <- VL$nw_titer * i
       ## find which elements have titer <= 0.5
-      below_LOD <- which(VL$nw_titer <= LOD)
+      below_LOD <- which(VL$nw_titer <= 0.5)
       ## if any titers below, set the values of those to 0
       if (length(below_LOD) >= 1){
         for (k in below_LOD){
@@ -121,7 +107,7 @@ for (i in s_vals){
       filter(DI_RC == "RC") %>%
       filter(DI_RC_Pair == ferret) %>%
       mutate(dpe = time - 1)
-    if (max(partner$nw_titer) > LOD){
+    if (max(partner$nw_titer) > 0.5){
       first_positive_index <- which.max(partner$nw_titer > LOD)
       first_positive_time <- as.numeric(as.character(partner[first_positive_index, "dpe"]))
       ## if the first positive test is at 2dpi, call the last negative time at 0
@@ -161,15 +147,61 @@ for (i in s_vals){
   print(paste("Round", i, "done"))
 }
 
-log_probs_df <- data.frame(s = s_vals, 
+H1N1_MLE_trace <- data.frame(s = s_vals, 
                            prob = log_probs)
 
-max <- max(log_probs_df$prob)
-index <- match(max, log_probs_df$prob)
-MLE <- log_probs_df[index,]
+max <- max(H1N1_MLE_trace$prob)
+index <- match(max, H1N1_MLE_trace$prob)
+MLE <- H1N1_MLE_trace[index,]
 
 CI_cutoff <- max - 1.92
-find_CIs <- near(CI_cutoff, log_probs_df$prob, tol = 0.053) ## toggle tol to find the two values closest to the CI cutoff
-CIs <- log_probs_df[find_CIs,]
+find_CIs <- near(CI_cutoff, H1N1_MLE_trace$prob, tol = 0.053) ## toggle tol to find the two values closest to the CI cutoff
+CIs <- H1N1_MLE_trace[find_CIs,]
 
-save.image(file = "s_MLE_H3N2.RData")
+save.image(file = "s_MLE_H1N1.RData")
+save(H1N1_MLE_trace, file="H1N1_MLE_trace.RData") 
+
+## the below code generates the transmission probability over time for set values of s
+## these results are displayed in fig 3b
+## the required input is interpolated viral load data for each ferret
+## which is generated above
+
+## vector of times at which to calculate the integral
+times <- seq(0, 10, 0.1)
+## pick random value for s
+s_vals <- c(0.05, 0.1, 0.2)
+
+panel_3b <- vector("list", length(s_vals))
+
+for (i in 1:length(panel_3b)){
+  s <- s_vals[i]
+  for (ferret in donor_names){
+    ferret_data <- ferret_preds[[ferret]]
+    ## empty vector for integral values
+    integral_values <- c()
+    ## loop through each timepoint
+    for (t in times){
+      VL <- ferret_data %>%
+        filter(dpe <= t)
+      xval <- VL$dpe
+      yval <- VL$nw_titer * s
+      ## find which elements have titer <= 0.5
+      below_LOD <- which(VL$nw_titer <= 0.5)
+      ## if any titers below, set the values of those to 0
+      if (length(below_LOD) >= 1){
+        for (k in below_LOD){
+          yval[k] <- 0
+        }
+      }
+      foi_val <- AUC(xval, yval, method = "trapezoid")
+      integral_values <- append(integral_values, foi_val)
+    }
+    ferret_data <- ferret_data %>%
+      mutate(foi_log = integral_values) %>%
+      mutate(pr_contact_pos_log = calculate_pr_contact_pos(foi_log))
+    ferret_preds[[ferret]] <- ferret_data
+  }
+  panel_3b[[i]] <- ferret_preds
+}
+
+save(panel_3b, file="panel_3b_data.RData") 
