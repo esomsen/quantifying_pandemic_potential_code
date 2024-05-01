@@ -153,6 +153,8 @@ hist(H1N1.num.offspring, right=F)
 H1N1_negb_fit <- fitdistr(H1N1.num.offspring, "negative binomial")
 H1N1_mean_R0 <- H1N1_negb_fit$estimate[["mu"]]
 H1N1_k <- H1N1_negb_fit$estimate[["size"]]
+## save R0 and k values for future use
+save(H1N1_mean_R0, H1N1_k, file="H1N1_R0_k.RData")
 
 ## plot probability distribution of fitted neg binom over histogram
 x <- seq(0, max(H1N1.num.offspring), 1)
@@ -323,6 +325,8 @@ hist(H3N2.num.offspring, right=F)
 H3N2_negb_fit <- fitdistr(H3N2.num.offspring, "negative binomial")
 H3N2_mean_R0 <- H3N2_negb_fit$estimate[["mu"]]
 H3N2_k <- H3N2_negb_fit$estimate[["size"]]
+## save R0 and k values for future use
+save(H3N2_mean_R0, H3N2_k, file="H3N2_R0_k.RData")
 
 ## plot probability distribution of fitted neg binom over histogram
 x <- seq(0, max(H3N2.num.offspring), 1)
