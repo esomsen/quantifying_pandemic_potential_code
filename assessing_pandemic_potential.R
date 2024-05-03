@@ -2,6 +2,7 @@ library(tidyverse)
 library(DescTools)
 library(khroma)
 library(MASS)
+library(fitdistrplus)
 
 ## function to add linear interpolations between measured datapoints
 interpolation <- function(row1, row2, data, interval){
@@ -32,6 +33,9 @@ exposure.length <- 1/24
 
 ## number of contacts (rounded average for 5-9yo/day from Mossong et al.)
 num.contacts <- 15
+
+## number of trials
+its <- 100
 
 # H1N1 analysis -----------------------------------------------------------
 
@@ -114,8 +118,6 @@ for (ferret in H1N1_recipient_names){
   H1N1_transmission_probs[[ferret]] <- data
 }
 
-## number of trials
-its <- 100
 ## record R0 and k values for all trials
 H1N1.R0s <- c()
 H1N1.ks <- c()
@@ -157,15 +159,20 @@ for (i in 1:its){
   }
   ## fit the simulated offspring frequencies to a negative binomial distribution 
   ## size = shape (k) and mean = mu
-  H1N1_negb_fit <- fitdistr(H1N1.num.offspring, "negative binomial")
+  H1N1_negb_fit <- fitdist(H1N1.num.offspring, "nbinom", method="mle")
   H1N1.R0s[i] <- H1N1_negb_fit$estimate[["mu"]]
   H1N1.ks[i] <- H1N1_negb_fit$estimate[["size"]]
   H1N1.indv.Z[,i] <- H1N1.num.offspring
-  ## fit simulated generation intervals with gamma distribution 
-  ## constrain shape and rate to be positive to avoid optimization warnings/failures
-  H1N1_gen_time_fit <- fitdistr(H1N1.gen.time, "gamma", lower=c(1e-5,1e-5))
-  H1N1.shapes[i] <- H1N1_gen_time_fit$estimate[["shape"]]
-  H1N1.rates[i] <- H1N1_gen_time_fit$estimate[["rate"]]
+  ## if there is only one offspring, use "delta function"
+  if (sum(H1N1.num.offspring) == 1){
+    ## I understand how to incorporate if I was tracking the mean (the mean would just be the estimate)
+    ## but I'm not sure it's possible to relate the delta function to the shape and rate 
+  } else {
+    ## fit simulated generation intervals with gamma distribution 
+    H1N1_gen_time_fit <- fitdist(H1N1.gen.time, "gamma", method="mle")
+    H1N1.shapes[i] <- H1N1_gen_time_fit$estimate[["shape"]]
+    H1N1.rates[i] <- H1N1_gen_time_fit$estimate[["rate"]] 
+  }
 }
 
 H1N1_mean_R0 <- mean(H1N1.R0s)
@@ -206,7 +213,6 @@ ggplot(H1N1_gamma, aes(x=x, y=y)) +
   geom_line() +
   labs(x="Generation interval (days)", y="Probability") +
   theme_light()
-
 
 # H3N2 analysis -----------------------------------------------------------
 
@@ -304,8 +310,6 @@ for (ferret in H3N2_recipient_names){
   H3N2_transmission_probs[[ferret]] <- data
 }
 
-## number of trials
-its <- 100
 ## record R0 and k values for all trials
 H3N2.R0s <- c()
 H3N2.ks <- c()
@@ -347,13 +351,12 @@ for (i in 1:its){
   }
   ## fit the simulated offspring frequencies to a negative binomial distribution 
   ## size = shape (k) and mean = mu
-  H3N2_negb_fit <- fitdistr(H3N2.num.offspring, "negative binomial")
+  H3N2_negb_fit <- fitdist(H3N2.num.offspring, "nbinom", method="mle")
   H3N2.R0s[i] <- H3N2_negb_fit$estimate[["mu"]]
   H3N2.ks[i] <- H3N2_negb_fit$estimate[["size"]]
   H3N2.indv.Z[,i] <- H3N2.num.offspring
   ## fit simulated generation intervals with gamma distribution 
-  ## constrain shape and rate to be positive to avoid optimization warnings/failures
-  H3N2_gen_time_fit <- fitdistr(H3N2.gen.time, "gamma", lower=c(1e-5,1e-5))
+  H3N2_gen_time_fit <- fitdist(H3N2.gen.time, "gamma", method="mle")
   H3N2.shapes[i] <- H3N2_gen_time_fit$estimate[["shape"]]
   H3N2.rates[i] <- H3N2_gen_time_fit$estimate[["rate"]]
 }

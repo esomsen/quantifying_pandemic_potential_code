@@ -6,6 +6,18 @@ load("H3N2_R0_k.RData")
 
 # extinction probability --------------------------------------------------
 
+prob.extinction <- function(R0, k){
+  ## for a negative binomial offspring distribution
+  pgf <- function(s){(1 + (R0/k)*(1-s))^(-k)}
+  prob <- optimize(pgf, c(0,1))$minimum
+  return(prob)
+}
+
+R0 <- 1.63
+k <- 2359926
+
+prob.extinction(R0, k)
+
 ## code from Madison for calculating the probability of extinction given an R0 and k
 
 extinction_prob <- function(R0, k){ 
@@ -22,8 +34,7 @@ extinction_prob <- function(R0, k){
   return(extinction.prob)
 }
 
-extinction_prob(H1N1_mean_R0, H1N1_k)
-extinction_prob(H3N2_mean_R0, H3N2_k)
+extinction_prob(R0, k)
 
 # branching process simulations ---------------------------------------------------------
 
