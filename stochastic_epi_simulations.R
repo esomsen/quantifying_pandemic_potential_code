@@ -1,14 +1,14 @@
 library(tidyverse)
 library(khroma)
 
-load("H1N1_R0_k.RData")
-load("H3N2_R0_k.RData")
+load("H1N1_distr.RData")
+load("H3N2_distr.RData")
 
 # extinction probability --------------------------------------------------
 
 prob.extinction <- function(R0, k){
   ## for a negative binomial offspring distribution
-  pgf <- function(s){(1 + (R0/k)*(1-s))^(-k)}
+  pgf <- function(s){abs(s-((1+(R0/k)*(1-s))^(-k)))}
   prob <- optimize(pgf, c(0,1))$minimum
   return(prob)
 }
@@ -35,6 +35,20 @@ extinction_prob <- function(R0, k){
 }
 
 extinction_prob(R0, k)
+
+# stuttering chains -------------------------------------------------------
+
+chain.length <- function(R0, k){
+  if (R0 > 1){
+    print("R0 is greater than 1")
+  } else {
+    mu <- 1 / (1 - R0)
+    cov <- sqrt((R0*(1 + (R0/k)))/(1 - R0))
+    return(c("mu" = mu, "cov" = cov))
+  }
+}
+
+H3N2_chains <- chain.length(H3N2_mean_R0, H3N2_mean_k)
 
 # branching process simulations ---------------------------------------------------------
 

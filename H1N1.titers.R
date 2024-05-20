@@ -1,5 +1,9 @@
 library(tidyverse)
 library(ggpubr)
+library(khroma)
+
+H1N1_color <- color("muted")(1)
+H1N1_color <- H1N1_color[[1]]
 
 ferrets <- read_csv("H1N1_raw_titer_data.csv", col_names = T, show_col_types = F)
 colnames(ferrets) <- c("Ferret_ID", "DI_RC", "DI_RC_Pair", "Dose", "dpi", "nw_titer", "donor_dose")
@@ -124,19 +128,20 @@ all_10.0$shape_combo <- paste(all_10.0$LOD_shape, "-", all_10.0$pair_shape)
 p_10.6 <- ggplot(all_10.6, aes(x=dpch, y=nw_titer, color=DI_RC, group=pair_shape)) +
   geom_point(aes(shape=shape_combo), size=2) +
   geom_line(aes(group=Ferret_ID), linewidth=1) +
-  scale_color_manual(labels = c("Donor", "Recipient"), values = c("black", "red")) +
+  scale_color_manual(labels = c("Donor", "Recipient"), values = c("black", H1N1_color)) +
   scale_shape_manual(values=c(15, 16, 17, 18, 0, 1, 2, 5)) +
   scale_x_continuous(limits=c(0, 13), breaks = seq(0, 13, 2)) +
   scale_y_continuous(limits=c(0, 7), breaks = seq(0, 7, 2)) +
   guides(shape = "none") +
   theme_light() +
   geom_hline(yintercept = 0.5, linetype = 2) +
-  labs(title = expression(10^{6}), x = NULL, y=NULL, color=NULL)
+  geom_text(label="TE = 100%", x=11, y=5, color="black") +
+  labs(title = expression(paste("E; ", 10^{6})), x = NULL, y=NULL, color=NULL)
 
 p_10.4 <- ggplot(all_10.4, aes(x=dpch, y=nw_titer, color=DI_RC)) +
   geom_point(aes(shape=shape_combo), size=2) +
   geom_line(aes(group=Ferret_ID), linewidth=1) +
-  scale_color_manual(labels = c("Donor", "Recipient"), values = c("black", "red")) +
+  scale_color_manual(labels = c("Donor", "Recipient"), values = c("black", H1N1_color)) +
   scale_shape_manual(values=c(15, 16, 17, 18, 0, 1, 2, 5)) +
   scale_x_continuous(limits=c(0, 13), breaks = seq(0, 13, 2)) +
   scale_y_continuous(limits=c(0, 7), breaks = seq(0, 7, 2)) +
@@ -144,12 +149,13 @@ p_10.4 <- ggplot(all_10.4, aes(x=dpch, y=nw_titer, color=DI_RC)) +
   theme(legend.position = "top") +
   theme_light() +
   geom_hline(yintercept = 0.5, linetype = 2) +
-  labs(title = expression(10^{4}), x = NULL, y = NULL, color=NULL)
+  geom_text(label="TE = 100%", x=11, y=5, color="black") +
+  labs(title = expression(paste("D; ", 10^{4})), x = NULL, y = NULL, color=NULL)
 
 p_10.2 <- ggplot(all_10.2, aes(x=dpch, y=nw_titer, color=DI_RC)) +
   geom_point(aes(shape=shape_combo), size=2) +
   geom_line(aes(group=Ferret_ID), linewidth=1) +
-  scale_color_manual(labels = c("Donor", "Recipient"), values = c("black", "red")) +
+  scale_color_manual(labels = c("Donor", "Recipient"), values = c("black", H1N1_color)) +
   scale_shape_manual(values=c(15, 16, 17, 18, 0, 1, 2, 5)) +
   scale_x_continuous(limits=c(0, 13), breaks = seq(0, 13, 2)) +
   scale_y_continuous(limits=c(0, 7), breaks = seq(0, 7, 2)) +
@@ -157,12 +163,13 @@ p_10.2 <- ggplot(all_10.2, aes(x=dpch, y=nw_titer, color=DI_RC)) +
   theme(legend.position = "top") +
   theme_light() +
   geom_hline(yintercept = 0.5, linetype = 2) +
-  labs(title = expression(10^{2}), x = NULL, y = NULL, color=NULL)
+  geom_text(label="TE = 100%", x=11, y=5, color="black") +
+  labs(title = expression(paste("C; ", 10^{2})), x = NULL, y = NULL, color=NULL)
 
 p_10.1 <- ggplot(all_10.1, aes(x=dpch, y=nw_titer, color=DI_RC)) +
   geom_point(aes(shape=shape_combo), size=2) +
   geom_line(aes(group=Ferret_ID), linewidth=1) +
-  scale_color_manual(labels = c("Donor", "Recipient"), values = c("black", "red")) +
+  scale_color_manual(labels = c("Donor", "Recipient"), values = c("black", H1N1_color)) +
   scale_shape_manual(values=c(15, 16, 17, 18, 0, 1, 2, 5)) +
   scale_x_continuous(limits=c(0, 13), breaks = seq(0, 13, 2)) +
   scale_y_continuous(limits=c(0, 7), breaks = seq(0, 7, 2)) +
@@ -170,12 +177,13 @@ p_10.1 <- ggplot(all_10.1, aes(x=dpch, y=nw_titer, color=DI_RC)) +
   theme(legend.position = "top") +
   theme_light() +
   geom_hline(yintercept = 0.5, linetype = 2) +
-  labs(title = expression(10^{1}), x = NULL, y = NULL, color=NULL)
+  geom_text(label="TE = 100%", x=11, y=5, color="black") +
+  labs(title = expression(paste("B; ", 10^{1})), x = NULL, y = NULL, color=NULL)
 
 p_10.0 <- ggplot(all_10.0, aes(x=dpch, y=nw_titer, color=DI_RC)) +
   geom_point(aes(shape=shape_combo), size=2) +
   geom_line(aes(group=Ferret_ID), linewidth=1) +
-  scale_color_manual(labels = c("Donor", "Recipient"), values = c("black", "red")) +
+  scale_color_manual(labels = c("Donor", "Recipient"), values = c("black", H1N1_color)) +
   scale_shape_manual(values=c(15, 16, 17, 18, 0, 1, 2, 5)) +
   scale_x_continuous(limits=c(0, 13), breaks = seq(0, 13, 2)) +
   scale_y_continuous(limits=c(0, 7), breaks = seq(0, 7, 2)) +
@@ -183,19 +191,22 @@ p_10.0 <- ggplot(all_10.0, aes(x=dpch, y=nw_titer, color=DI_RC)) +
   theme(legend.position = "top") +
   theme_light() +
   geom_hline(yintercept = 0.5, linetype = 2) +
-  labs(title = expression(10^{0}), x = NULL, y = NULL, color=NULL)
+  geom_text(label="TE = 75%", x=11, y=5, color="black") +
+  labs(title = expression(paste("A; ", 10^{0})), x = NULL, y = NULL, color=NULL)
 
 ## create empty plot
 spacer <- ggplot() +
   theme_void() +
-  labs(title = expression(10^{3})) +
-  geom_text(aes(0,0,label='Not tested')) +
+  #ggtitle(expression(10^{3} ~ "not tested")) +
+  geom_text(aes(0, 0, label="Not tested.")) +
   xlab(NULL)
 
 p_all <- ggarrange(p_10.0, p_10.1, p_10.2, spacer, p_10.4, p_10.6, 
                    ncol = 2, 
                    nrow = 3, 
                    common.legend = T, 
-                   legend = "top")
+                   legend = "none")
 
-annotate_figure(p_all, left = text_grob(expression(paste("Viral titer (", log[10], TCID[50], ")")), rot = 90), bottom = "Days post exposure")
+H1N1_titers <- annotate_figure(p_all, left = text_grob(expression(paste("Viral titer (", log[10], TCID[50], ")")), rot = 90), bottom = "Days post exposure")
+
+ggarrange(H1N1_titers, H1N1_kinetcs_plot, common.legend = TRUE)

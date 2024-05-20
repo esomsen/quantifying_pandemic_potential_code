@@ -3,6 +3,7 @@ library(DescTools)
 library(khroma)
 library(MASS)
 library(fitdistrplus)
+library(ggpubr)
 
 ## function to add linear interpolations between measured datapoints
 interpolation <- function(row1, row2, data, interval){
@@ -183,7 +184,7 @@ H1N1_mean_shape <- mean(H1N1.shapes)
 H1N1_mean_rate <- mean(H1N1.rates)
 
 ## save values for future use
-#save(H1N1_mean_R0, H1N1_mean_k, H1N1_mean_shape, H1N1_mean_rate, file="H1N1_distr.RData")
+save(H1N1_mean_R0, H1N1_mean_k, H1N1_mean_shape, H1N1_mean_rate, file="H1N1_distr.RData")
 
 H1N1.indv.Z <- as.data.frame(H1N1.indv.Z)
 H1N1.indv.Z$Ferret_ID <- as.character(H1N1_recipient_names)
@@ -318,6 +319,7 @@ H3N2.shapes <- c()
 H3N2.rates <- c()
 ## record individual R0s estimates for all trials
 H3N2.indv.Z <- matrix(data=0, ncol=its, nrow=length(H3N2_recipient_names))
+#times <- c()
 
 for (i in 1:its){
   ## record number of infected contacts for each ferret in each trial
@@ -356,6 +358,7 @@ for (i in 1:its){
   H3N2.ks[i] <- H3N2_negb_fit$estimate[["size"]]
   H3N2.indv.Z[,i] <- H3N2.num.offspring
   ## fit simulated generation intervals with gamma distribution 
+  #times <- append(times, H3N2.gen.time)
   H3N2_gen_time_fit <- fitdist(H3N2.gen.time, "gamma", method="mle")
   H3N2.shapes[i] <- H3N2_gen_time_fit$estimate[["shape"]]
   H3N2.rates[i] <- H3N2_gen_time_fit$estimate[["rate"]]
@@ -369,7 +372,7 @@ H3N2_mean_shape <- mean(H3N2.shapes)
 H3N2_mean_rate <- mean(H3N2.rates)
 
 ## save values for future use
-#save(H3N2_mean_R0, H3N2_mean_k, H3N2_mean_shape, H3N2_mean_rate, file="H3N2_distr.RData")
+save(H3N2_mean_R0, H3N2_mean_k, H3N2_mean_shape, H3N2_mean_rate, file="H3N2_distr.RData")
 
 H3N2.indv.Z <- as.data.frame(H3N2.indv.Z)
 H3N2.indv.Z$Ferret_ID <- as.character(H3N2_recipient_names)
@@ -408,7 +411,7 @@ plot_colors <- color("muted")(2)
 indv.Z <- rbind(H1N1.indv.Z, H3N2.indv.Z)
 indv.Z$virus <- c(rep("H1N1", length(H1N1.indv.Z$Z)), rep("H3N2", length(H3N2.indv.Z$Z)))
 
-ggplot(indv.Z, aes(x=Ferret_ID, y=Z, color=virus)) +
+offspring.plot <- ggplot(indv.Z, aes(x=Ferret_ID, y=Z, color=virus)) +
   geom_boxplot() +
   stat_summary(fun="mean", geom="point", size=2) +
   labs(x="Ferret ID", y="Number of secondary cases") +
@@ -423,9 +426,9 @@ negb.fit <- data.frame(x=seq(0, 9, 1),
                        H1N1=dnbinom(seq(0, 9, 1), size=H1N1_mean_k, mu=H1N1_mean_R0),
                        H3N2=dnbinom(seq(0, 9, 1), size=H3N2_mean_k, mu=H3N2_mean_R0))
 negb.fit <- negb.fit %>%
-              pivot_longer(cols=2:3, names_to="virus", values_to="prob")
+              pivot_longer(cols=2:3, names_to="subtype", values_to="prob")
 
-ggplot(negb.fit, aes(x=x, y=prob, color=virus, fill=virus)) +
+negb.plot <- ggplot(negb.fit, aes(x=x, y=prob, color=subtype, fill=subtype)) +
   geom_bar(stat = "identity", position = "dodge", alpha=0.7) +
   ## add lines for mean R0
   geom_vline(xintercept=H1N1_mean_R0, color=plot_colors[[1]], linewidth=2, linetype=2) +
@@ -442,9 +445,9 @@ gamma.fit <- data.frame(x=seq(0, 12, 0.01),
                         H1N1=dgamma(seq(0, 12, 0.01), shape=H1N1_mean_shape, rate=H1N1_mean_rate),
                         H3N2=dgamma(seq(0, 12, 0.01), shape=H3N2_mean_shape, rate=H3N2_mean_rate))
 gamma.fit <- gamma.fit %>%
-  pivot_longer(cols=2:3, names_to="virus", values_to="prob")
+  pivot_longer(cols=2:3, names_to="subtype", values_to="prob")
 
-ggplot(gamma.fit, aes(x=x, y=prob, color=virus, fill=virus)) +
+gen.plot <- ggplot(gamma.fit, aes(x=x, y=prob, color=subtype, fill=subtype)) +
   geom_line(linewidth=2) +
   #geom_vline(xintercept=H1N1_mean_gen_time, color=plot_colors[[1]], linewidth=2, linetype=2) +
   #geom_vline(xintercept=H3N2_mean_gen_time, color=plot_colors[[2]], linewidth=2, linetype=2) +
@@ -453,3 +456,5 @@ ggplot(gamma.fit, aes(x=x, y=prob, color=virus, fill=virus)) +
   scale_x_continuous(breaks=seq(0, 12, 2)) +
   labs(x="Generation time (days)", y="Probability") +
   theme_light()
+
+ggarrange(offspring.plot, negb.plot, gen.plot, ncol=1, nrow=3)
