@@ -109,7 +109,7 @@ for (ferret in H1N1_recipient_names){
     ## if titer = LOD, we assume that the force of infection is 0
     lambda <- 0 
     } else { ## otherwise, calculate constant lambda for one-hour exposure
-    lambda <- AUC(x=c(0, exposure.length), y=rep(data[k,"nw_titer"], 2), method="trapezoid")
+    lambda <- AUC(x=c(0, exposure.length), y=rep(data[k,"nw_titer"]*MLE_H1N1, 2), method="trapezoid")
     }
     lambda_vals[k] <- lambda
   }
@@ -301,7 +301,7 @@ for (ferret in H3N2_recipient_names){
       ## if titer = LOD, we assume that the force of infection is 0
       lambda <- 0 
     } else { ## otherwise, calculate constant lambda for one-hour exposure
-      lambda <- AUC(x=c(0, exposure.length), y=rep(data[k,"nw_titer"], 2), method="trapezoid")
+      lambda <- AUC(x=c(0, exposure.length), y=rep(data[k,"nw_titer"]*MLE_H3N2, 2), method="trapezoid")
     }
     lambda_vals[k] <- lambda
   }

@@ -162,7 +162,7 @@ p_10.6 <- ggplot(all_10.6, aes(x=dpch, y=nw_titer, color=DI_RC, group=pair_shape
   theme_light() +
   geom_hline(yintercept = 0.5, linetype = 2) +
   geom_text(label="TE = 75%", x=11, y=5, color="black") +
-  labs(title = expression(paste("F; ", 10^{6})), x = NULL, y=NULL, color=NULL)
+  labs(x = NULL, y=NULL, color=NULL)
 
 p_10.4 <- ggplot(all_10.4, aes(x=dpch, y=nw_titer, color=DI_RC)) +
   geom_point(aes(shape=shape_combo), size=2) +
@@ -176,7 +176,7 @@ p_10.4 <- ggplot(all_10.4, aes(x=dpch, y=nw_titer, color=DI_RC)) +
   theme_light() +
   geom_hline(yintercept = 0.5, linetype = 2) +
   geom_text(label="TE = 100%", x=11, y=5, color="black") +
-  labs(title = expression(paste("E; ", 10^{4})), x = NULL, y = NULL, color=NULL)
+  labs(x = NULL, y = NULL, color=NULL)
 
 p_10.3 <- ggplot(all_10.3, aes(x=dpch, y=nw_titer, color=DI_RC)) +
   geom_point(aes(shape=shape_combo), size=2) +
@@ -190,7 +190,7 @@ p_10.3 <- ggplot(all_10.3, aes(x=dpch, y=nw_titer, color=DI_RC)) +
   theme_light() +
   geom_hline(yintercept = 0.5, linetype = 2) +
   geom_text(label="TE = 25%", x=11, y=5, color="black") +
-  labs(title = expression(paste("D; ", 10^{3})), x = NULL, y = NULL, color=NULL)
+  labs(x = NULL, y = NULL, color=NULL)
 
 p_10.2 <- ggplot(all_10.2, aes(x=dpch, y=nw_titer, color=DI_RC)) +
   geom_point(aes(shape=shape_combo), size=2) +
@@ -204,7 +204,7 @@ p_10.2 <- ggplot(all_10.2, aes(x=dpch, y=nw_titer, color=DI_RC)) +
   theme_light() +
   geom_hline(yintercept = 0.5, linetype = 2) +
   geom_text(label="TE = 50%", x=11, y=5, color="black") +
-  labs(title = expression(paste("C; ", 10^{2})), x = NULL, y = NULL, color=NULL)
+  labs(x = NULL, y = NULL, color=NULL)
 
 p_10.1 <- ggplot(all_10.1, aes(x=dpch, y=nw_titer, color=DI_RC)) +
   geom_point(aes(shape=shape_combo), size=2) +
@@ -218,7 +218,7 @@ p_10.1 <- ggplot(all_10.1, aes(x=dpch, y=nw_titer, color=DI_RC)) +
   theme_light() +
   geom_hline(yintercept = 0.5, linetype = 2) +
   geom_text(label="TE = 25%", x=11, y=5, color="black") +
-  labs(title = expression(paste("B; ", 10^{1})), x = NULL, y = NULL, color=NULL)
+  labs(x = NULL, y = NULL, color=NULL)
 
 p_10.0 <- ggplot(all_10.0, aes(x=dpch, y=nw_titer, color=DI_RC)) +
   geom_point(aes(shape=shape_combo), size=2) +
@@ -232,14 +232,24 @@ p_10.0 <- ggplot(all_10.0, aes(x=dpch, y=nw_titer, color=DI_RC)) +
   theme_light() +
   geom_hline(yintercept = 0.5, linetype = 2) +
   geom_text(label="TE = 0%", x=11, y=5, color="black") +
-  labs(title = expression(paste("A; ", 10^{0})), x = NULL, y = NULL, color=NULL)
+  labs(x = NULL, y = NULL, color=NULL)
 
-p_all <- ggarrange(p_10.0, p_10.1, p_10.2, p_10.3, p_10.4, p_10.6, 
-                   ncol = 2, 
-                   nrow = 3, 
-                   common.legend = T, 
-                   legend = "none")
+#p_all <- ggarrange(p_10.0, p_10.1, p_10.2, p_10.3, p_10.4, p_10.6, 
+                   #ncol = 2, 
+                   #nrow = 3, 
+                   #common.legend = T)
+                   #legend = "none")
 
-p_all <- annotate_figure(p_all, left = text_grob(expression(paste("Viral titer (", log[10], TCID[50], ")")), rot = 90), bottom = "Days post exposure")
+#p_all <- annotate_figure(p_all, left = text_grob(expression(paste("Viral titer (", log[10], TCID[50], ")")), rot = 90), bottom = "Days post exposure")
 
-ggarrange(p_all, H3N2_kinetcs_plot, common.legend = T)
+#ggarrange(p_all, H3N2_kinetcs_plot, common.legend = T)
+
+H3N2 <- ggarrange(p_10.0, p_10.1, p_10.2, p_10.3, p_10.4, p_10.6, 
+                  ncol = 1, 
+                  nrow = 6, 
+                  common.legend = T, 
+                  legend = "top")
+
+H3N2 <- annotate_figure(H3N2, left = text_grob(expression(paste("Viral titer (", log[10], TCID[50], ")")), rot = 90), bottom = "Days post exposure")
+
+ggarrange(H1N1, H3N2, ncol=2)

@@ -1,6 +1,6 @@
-library(ggpubr)
 library(khroma)
 library(tidyverse)
+library(ggpubr)
 library(DescTools)
 
 # H1N1 analysis -----------------------------------------------------------
@@ -48,69 +48,57 @@ for (ferret in H1N1_donor_names){
 H1N1.init.titers$numeric_dose <- as.numeric(substr(H1N1.init.titers$dose, 4, 4))
 H1N1.init.regression <- lm(nw_titer ~ numeric_dose, H1N1.init.titers)
 
-panel_f <- ggplot(H1N1.init.titers, aes(x=dose, y=nw_titer)) +
-  geom_dotplot(binaxis = "y", stackdir = "center", dotsize = 1, fill="black", color="black") +
+panel_a <- ggplot(H1N1.init.titers, aes(x=numeric_dose, y=nw_titer)) +
+  geom_point(size=2, position=position_jitter(width=0.2, height=0), fill="black", color="black") +
   ## add regression line
   geom_abline(slope = coef(H1N1.init.regression)[[2]], 
               intercept = coef(H1N1.init.regression)[[1]], 
               color="black", linewidth=1) +
   guides(color = "none") +
-  labs(title="F", xlab=NULL, y=expression(paste("Initial titer (", log[10], TCID[50], ")"))) +
+  ## signif
+  annotate("text", x=3, y=7, label="*", size=10, color="black") +
+  labs(title="A", x=NULL, y=expression(paste("Initial titer (", log[10], TCID[50], ")"))) +
   scale_y_continuous(breaks=c(0, 2, 4, 6, 8), limits = c(0, 8)) +
+  scale_x_continuous(breaks=seq(0, 6, 1), limits=c(-0.2, 6.2)) +
   theme_light() +
-  geom_hline(yintercept = 0.5, linetype = 2) +
-  scale_x_discrete(limits=c("10^0","10^1","10^2", "10^3", "10^4", "10^5", "10^6"),
-                   labels=c(0, 1, 2, 3, 4, 5, 6))
+  geom_hline(yintercept = 0.5, linetype = 2)
 
 ## linear regression for index AUC
 
 H1N1.donor.AUC$numeric_dose <- as.numeric(substr(H1N1.donor.AUC$dose, 4, 4))
 H1N1.donor.AUC.regression <- lm(AUC ~ numeric_dose, H1N1.donor.AUC)
 
-## AUC - H1N1 contacts
-
-H1N1.AUCs <- data.frame()
-
-for (ferret in H1N1_recipient_names){
-  ## filter data for individual ferrets and normalize by LOD
-  ferret_data <- H1N1_RC_ferrets %>%
-    filter(Ferret_ID == ferret) %>%
-    ## normalize titers by subtracting LOD and then calculate AUC
-    mutate(nw_titer = nw_titer - LOD)
-  y_vals <- ferret_data$nw_titer
-  x_vals <- ferret_data$dpe
-  H1N1.AUCs <- rbind(H1N1.AUCs, c(ferret_data[1,], "AUC"=AUC(x=x_vals, y=y_vals, method = "trapezoid")))
-}
-
-## linear regresssion for recipient AUC
-H1N1.AUCs$numeric_dose <- as.numeric(substr(H1N1.AUCs$donor_dose, 4, 4))
-H1N1_AUC_regression <- lm(AUC ~ numeric_dose, H1N1.AUCs)
-
-## plot index and contact together
-all.AUC <- data.frame("dose" = c(H1N1.donor.AUC[,"dose"], H1N1.AUCs[,"donor_dose"]), 
-                      "AUC" = c(H1N1.donor.AUC[,"AUC"], H1N1.AUCs[,"AUC"]))
-#all.AUC <- rbind(H1N1.donor.AUC[,c("dose", "AUC")], H1N1.AUCs[,c("_dose", "AUC")])
-all.AUC$type <- c(rep("donor", length(H1N1_donor_names)), rep("recipient", length(H1N1_recipient_names)))
-
-panel_g <- ggplot(all.AUC, aes(x=dose, y=AUC, color=type, fill=type)) +
-  geom_dotplot(binaxis = "y", stackdir = "center", dotsize = 1) +
-  scale_color_manual(values = c(donor="black", recipient=H1N1_color)) +
-  scale_fill_manual(name=NULL, labels = c("Index", "Contact"), values = c("black", H1N1_color)) +
+panel_b <- ggplot(H1N1.donor.AUC, aes(x=numeric_dose, y=AUC, color=type, fill=type)) +
+  geom_point(size=2, position=position_jitter(width=0.2, height=0), fill="black", color="black") +
   ## add regression line
-  geom_abline(slope = coef(H1N1_AUC_regression)[[2]], 
-              intercept = coef(H1N1_AUC_regression)[[1]], 
-              color=H1N1_color, linewidth=1) +
   geom_abline(slope = coef(H1N1.donor.AUC.regression)[[2]], 
               intercept = coef(H1N1.donor.AUC.regression)[[1]], 
               color="black", linewidth=1) +
-  labs(title="G", x=NULL, y="AUC (log-transformed)") +
+  labs(title="B", x=NULL, y="AUC (log-transformed)") +
   guides(color="none") +
   scale_y_continuous(limits = c(0, 30), breaks = seq(0, 30, 4)) +
-  theme_light() +
-  scale_x_discrete(limits=c("10^0","10^1","10^2", "10^3", "10^4", "10^5", "10^6"),
-                   labels=c(0, 1, 2, 3, 4, 5, 6))
+  scale_x_continuous(breaks=seq(0, 6, 1), limits=c(-0.2, 6.2)) +
+  theme_light()
 
-## time of initial positive test in contacts
+## infection outcome by AUC
+
+H1N1.AUC.infx <- merge(x=H1N1.donor.AUC[,c(1, 6)], y=H1N1_ferrets[,c(1,3, 4)], by="Ferret_ID", sort=F, all.x=T) %>%
+  unique()
+H1N1.AUC.infx$infx.outcome = ifelse(H1N1.AUC.infx$DI_RC_Pair %in% H1N1_recipient_names, 1, 0)
+#H1N1.AUC.infx$dose <- as.factor(substr(H1N1.AUC.infx$dose, 4, 4))
+
+H1N1.logit <- glm(infx.outcome ~ AUC, data=H1N1.AUC.infx, family="binomial")
+
+panel_c <- ggplot(H1N1.AUC.infx, aes(x=AUC, y=infx.outcome, shape=dose)) +
+  geom_point(size=2, fill=H1N1_color, color=H1N1_color) +
+  scale_shape_manual(values=c(15, 3, 16, 17, 18)) + 
+  stat_smooth(method="glm", se=FALSE, method.args = list(family=binomial), color=H1N1_color) +
+  labs(title="C", x=NULL, y="Infection outcome", shape="Index dose") +
+  scale_y_continuous(limits=c(0,1), breaks=c(0, 1)) +
+  xlim(0, 30) +
+  theme_light()
+
+## time of initial positive test in contacts vs initial viral titer
 
 H1N1.time.positive <- data.frame()
 
@@ -122,133 +110,141 @@ for (ferret in H1N1_recipient_names){
   H1N1.time.positive <- rbind(H1N1.time.positive, c(ferret_data[1,1:2], "pos_time" = first_positive_time))
 }
 
-## linear regression for time to first positive test
-H1N1.time.positive$numeric_dose <- as.numeric(substr(H1N1.time.positive$donor_dose, 4, 4))
-H1N1.time.positive.regression <- lm(pos_time ~ numeric_dose, H1N1.time.positive)
+H1N1.time.positive <- merge(x=H1N1.time.positive, y=H1N1_ferrets[,c(1,3)], by.x = "Ferret_ID", by.y="DI_RC_Pair", sort=F, all.x=T) %>%
+  unique()
+H1N1.time.positive <- merge(x=H1N1.time.positive, y=H1N1.init.titers[,c(1,4)], by.x="Ferret_ID.y", by.y="Ferret_ID", sort=F, allx.=T) %>%
+  unique()
+#H1N1.time.positive$donor_dose <- as.factor(substr(H1N1.time.positive$donor_dose, 4, 4))
+names(H1N1.time.positive) <- c("index", "contact", "donor_dose", "pos_time", "initial_titer")
 
-panel_h <- ggplot(H1N1.time.positive, aes(x=donor_dose, y=pos_time)) +
-  geom_dotplot(binaxis = "y", stackdir = "center", dotsize = 1, fill=H1N1_color, color=H1N1_color) +
+## linear regression for time to first positive test
+H1N1.time.positive.regression <- lm(pos_time ~ initial_titer, H1N1.time.positive)
+
+panel_d <- ggplot(H1N1.time.positive, aes(x=initial_titer, y=pos_time, shape=donor_dose)) +
+  geom_point(size=2, position=position_jitter(width=0.2, height=0), fill=H1N1_color, color=H1N1_color) +
+  scale_shape_manual(values=c(15, 3, 16, 17, 18)) +
   ## add regression line
   geom_abline(slope = coef(H1N1.time.positive.regression)[[2]], 
               intercept = coef(H1N1.time.positive.regression)[[1]], 
               color=H1N1_color, linewidth=1) +
-  labs(title="H", x=NULL, y="Time to first positive test (days)") +
+  labs(title="D", x=NULL, y="Time to first positive test (days)", shape="Index dose") +
   guides(color = "none") +
-  scale_y_continuous(limits = c(0, 12), breaks = seq(0, 12, 2)) +
-  theme_light() +
-  scale_x_discrete(limits=c("10^0","10^1","10^2", "10^3", "10^4", "10^5", "10^6"),
-                   labels=c(0, 1, 2, 3, 4, 5, 6))
+  scale_x_continuous(limits = c(0, 7), breaks=seq(0, 7, 2)) +
+  scale_y_continuous(limits = c(0, 8), breaks = seq(0, 8, 2)) +
+  theme_light()
 
-## peak titer timing and magnitude - H1N1
+H1N1_plots <- ggarrange(panel_a, panel_b, panel_c, panel_d, ncol=4, align = "h", common.legend = T, legend="right")
 
-H1N1_peak_titer <- data.frame()
-H1N1_time_peak <- data.frame()
+ggarrange(H1N1_plots, H3N2_plots, nrow=2, align="v")
 
-for (ferret in H1N1_recipient_names){
-  ferret_data <- H1N1_RC_ferrets %>%
-    filter(Ferret_ID == ferret)
-  max_titer_index <- which.max(ferret_data$nw_titer)
-  first_positive_index <- which.max(ferret_data$nw_titer > LOD)
-  ## time since last negative test to the peak test titer
-  if (first_positive_index > 1){
-    time <- ferret_data[[max_titer_index,"dpe"]] - ferret_data[[first_positive_index-1,"dpe"]]
-  } else { ## if the first positive test is the first test, consider t=0 to be start of infection
-    time <- ferret_data[[max_titer_index,"dpe"]]
-  }
-  H1N1_time_peak <- rbind(H1N1_time_peak, cbind(ferret_data[1, 1:2], time))
-  H1N1_peak_titer <- rbind(H1N1_peak_titer, ferret_data[max_titer_index,])
+## forward start time simulations
+
+interpolation <- function(row1, row2, data, interval){
+  index_1 <- data[row1, ]
+  index_2 <- data[row2, ]
+  times <- seq(index_1$dpe, index_2$dpe, interval)
+  preds <- seq(index_1$nw_titer, index_2$nw_titer, length.out=length(times))
+  df <- data.frame(dpe = times,
+                   nw_titer = preds)
+  return (df)
 }
 
-## linear regression for peak titer value
-## use donor inoculum dose as a numeric value on log-scale
-H1N1_peak_titer$numeric_dose <- as.numeric(substr(H1N1_peak_titer$donor_dose, 4, 4))
-H1N1_peak_titer_regression <- lm(nw_titer ~ numeric_dose, H1N1_peak_titer)
-
-panel_i <- ggplot(H1N1_peak_titer, aes(x=donor_dose, y=nw_titer)) +
-  geom_dotplot(binaxis = "y", stackdir = "center", dotsize = 1, fill=H1N1_color, color=H1N1_color) +
-  ## add regression line
-  geom_abline(slope = coef(H1N1_peak_titer_regression)[[2]], 
-              intercept = coef(H1N1_peak_titer_regression)[[1]], 
-              color=H1N1_color, linewidth=1) +
-  guides(color = "none") +
-  labs(title="I", x=NULL, y=expression(paste("Peak titer (", log[10], TCID[50], ")"))) +
-  scale_y_continuous(breaks=c(0, 2, 4, 6, 8), limits = c(0, 8)) +
-  theme_light() +
-  geom_hline(yintercept = 0.5, linetype = 2) +
-  scale_x_discrete(limits=c("10^0","10^1","10^2", "10^3", "10^4", "10^5", "10^6"),
-                   labels=c(0, 1, 2, 3, 4, 5, 6))
-
-## linear regression for time to peak titer
-H1N1_time_peak$numeric_dose <- as.numeric(substr(H1N1_time_peak$donor_dose, 4, 4))
-H1N1_time_peak_regression <- lm(time ~ numeric_dose, H1N1_time_peak)
-
-panel_j <- ggplot(H1N1_time_peak, aes(x=donor_dose, y=time)) +
-  geom_dotplot(binaxis = "y", stackdir = "center", dotsize = 1, fill=H1N1_color, color=H1N1_color) +
-  ## add regression line
-  geom_abline(slope = coef(H1N1_time_peak_regression)[[2]], 
-              intercept = coef(H1N1_time_peak_regression)[[1]], 
-              color=H1N1_color, linewidth=1) +
-  guides(color = "none") +
-  labs(title="J", x=NULL, y="Time to peak titer (days)") +
-  scale_y_continuous(breaks=c(0, 2, 4, 6, 8, 10), limits = c(0, 10)) +
-  theme_light() +
-  scale_x_discrete(limits=c("10^0","10^1","10^2", "10^3", "10^4", "10^5", "10^6"),
-                   labels=c(0, 1, 2, 3, 4, 5, 6))
-
-## duration of infection - H1N1
-
-H1N1_infx_lengths <- c(rep(0, length(H1N1_recipient_names)))
-names(H1N1_infx_lengths) <- H1N1_recipient_names
-
-for (ferret in H1N1_recipient_names){
-  ferret_data <- H1N1_RC_ferrets %>%
-    filter(Ferret_ID == ferret)
-  ## find first positive test
-  first_positive_index <- which.max(ferret_data$nw_titer > LOD)
-  ## assume that viral growth begins immediately following the last negative test
-  if (first_positive_index > 1){
-    first_positive_time <- ferret_data[[first_positive_index-1, "dpe"]]
-  } else { ## if the first positive test is the first test, assume that
-    ## the contact animal was infected immediately following exposure
-    first_positive_time <- 0
-  }
-  ## find the time infection resolves
-  post_infection <- ferret_data %>%
-    filter(dpe > first_positive_time)
-  if (post_infection[[length(post_infection$dpe), "nw_titer"]] > LOD){
-    ## if the animal doesn't resolve infection by the last measured timepoint, 
-    ## assume that infection would have resolved at the next test date 
-    resolution_time <- post_infection[[length(post_infection$dpe), "dpe"]] + 2
-  } else {
-    ## if the animal does resolve, just find the first time titers reach LOD again
-    resolution_time <- post_infection[[which.max(post_infection$nw_titer == LOD), "dpe"]]
-  }
-  duration <- resolution_time - first_positive_time
-  H1N1_infx_lengths[ferret] <- duration
+## create function for F(t)
+calculate_pr_contact_pos <- function(lambda_integral){
+  prob <- 1 - exp(-lambda_integral)
+  return (prob)
 }
 
-H1N1_duration <- data.frame(Ferret_ID = H1N1_recipient_names, 
-                            donor_dose = H1N1_time_peak$donor_dose, 
-                            duration = H1N1_infx_lengths)
-## linear regression for duration of infection
-H1N1_duration$numeric_dose <- as.numeric(substr(H1N1_duration$donor_dose, 4, 4))
-H1N1_duration_regression <- lm(duration ~ numeric_dose, H1N1_duration)
+interpolation_interval <- 0.001
+## define "contact" as one hour of exposure
+exposure.length <- 1/24
 
-panel_k <- ggplot(H1N1_duration, aes(x=donor_dose, y=duration)) +
-  geom_dotplot(binaxis = "y", stackdir = "center", dotsize = 1, fill=H1N1_color, color=H1N1_color) +
-  ## add regression line
-  geom_abline(slope = coef(H1N1_duration_regression)[[2]], 
-              intercept = coef(H1N1_duration_regression)[[1]], 
-              color=H1N1_color, linewidth=1) +
-  labs(title = "K", x=NULL, y="Duration of infection (days)") +
-  guides(color = "none") +
-  scale_y_continuous(limits = c(0, 12), breaks = seq(0, 12, 2)) +
-  theme_light() +
-  scale_x_discrete(limits=c("10^0","10^1","10^2", "10^3", "10^4", "10^5", "10^6"),
-                   labels=c(0, 1, 2, 3, 4, 5, 6))
+MLE_H1N1 <- 0.111
 
-H1N1_kinetcs_plot <- ggarrange(panel_f, panel_g, panel_h, panel_i, panel_j, panel_k, nrow=2, ncol=3, align = "v", common.legend = T, legend="right")
-H1N1_kinetcs_plot <- annotate_figure(H1N1_kinetcs_plot, bottom = text_grob(expression(paste("Inoculum dose (", log[10], TCID[50], ")"))))
+H1N1_transmission_probs <- vector("list", length(H1N1_donor_names))
+names(H1N1_transmission_probs) <- H1N1_donor_names
+
+## generate predictions for each ferret
+for (ferret in H1N1_donor_names){
+  ferret_data <- H1N1_DI_ferrets %>%
+    filter(Ferret_ID == ferret) %>%
+    dplyr::select(c(dpe, nw_titer))
+  df_1.3 <- interpolation(1, 2, ferret_data, interpolation_interval)
+  df_3.5 <- interpolation(2, 3, ferret_data, interpolation_interval)
+  df_5.7 <- interpolation(3, 4, ferret_data, interpolation_interval)
+  df_7.9 <- interpolation(4, 5, ferret_data, interpolation_interval)
+  df_9.11 <- interpolation(5, 6, ferret_data, interpolation_interval)
+  ## if infection resolves by 11 dpe
+  if (df_9.11[[length(df_9.11$dpe), "nw_titer"]] == LOD){
+    combo <- rbind(ferret_data, df_1.3, df_3.5, df_5.7, df_7.9, df_9.11)
+    combo <- combo %>%
+      ## get rid of duplicate rows
+      distinct() %>%
+      ## specify if values are interpolated or measured
+      mutate(type = if_else(dpe %in% c(1, 3, 5, 7, 9, 11), "measured", "predicted")) %>%
+      arrange(dpe) %>%
+      ## ensure that times are numeric for future integration
+      mutate(dpe = as.numeric(dpe))
+  } else { ## if infection hasn't yet resolved, add another interpolation for assumed negative test
+    times <- seq(df_9.11[[length(df_9.11$dpe), "dpe"]], 13, interpolation_interval)
+    preds <- seq(df_9.11[[length(df_9.11$dpe), "nw_titer"]], 0.5, length.out=length(times))
+    df_11.13 <- data.frame(dpe = times,
+                           nw_titer = preds)
+    combo <- rbind(ferret_data, df_1.3, df_3.5, df_5.7, df_7.9, df_9.11, df_11.13)
+    combo <- combo %>%
+      ## get rid of duplicate rows
+      distinct() %>%
+      ## specify if values are interpolated or measured
+      mutate(type = if_else(dpe %in% c(1, 3, 5, 7, 9, 11), "measured", "predicted")) %>%
+      arrange(dpe) %>%
+      ## ensure that times are numeric for future integration
+      mutate(dpe = as.numeric(dpe))
+  }
+  H1N1_transmission_probs[[ferret]] <- combo
+}
+
+## calculate probability of onwards transmission, mean
+time_means <- c(rep(0, length(H1N1_donor_names)))
+names(time_means) <- H1N1_donor_names
+
+for (ferret in H1N1_donor_names){
+  data <- H1N1_transmission_probs[[ferret]]
+  lambda_vals <- c()
+  ## calculate a constant force of infection given 1 hour exposure to each viral titer
+  for (k in 1:length(data$nw_titer)){
+    if (data[[k,"nw_titer"]] == LOD){
+      ## if titer = LOD, we assume that the force of infection is 0
+      lambda <- 0 
+    } else { ## otherwise, calculate constant lambda for one-hour exposure
+      lambda <- AUC(x=c(0, exposure.length), y=rep(data[k,"nw_titer"]*MLE_H1N1, 2), method="trapezoid")
+    }
+    lambda_vals[k] <- lambda
+  }
+  data$constant_foi <- lambda_vals
+  ## compute the probability of transmission given this force of infection
+  data$prob_transmission <- calculate_pr_contact_pos(data$constant_foi)
+  H1N1_transmission_probs[[ferret]] <- data
+  ## random draws for simulated start times
+  draws <- runif(length(data$prob_transmission), 0, 1)
+  indices <- which(data$prob_transmission > draws)
+  times <- data[indices, "dpe"]
+  time_means[ferret] <- mean(times$dpe)
+}
+
+H1N1.time_means <- data.frame(index = names(time_means), 
+                         mean = time_means)
+H1N1.time_means <- merge(x=H1N1.time_means, y=H1N1_ferrets[,c(1,3)], by.x = "index", by.y="Ferret_ID", sort=F, all.x=T) %>%
+  unique()
+H1N1.time_means <- merge(x=H1N1.time_means, y=H1N1.time.positive[,c(1,3)], by.x="DI_RC_Pair", by.y="Ferret_ID", sort=F)
+names(H1N1.time_means) <- c("contact", "index", "simulated.time", "real.time")
+
+H1N1.times <- ggplot(H1N1.time_means) +
+  geom_segment(aes(x=as.factor(contact), xend=as.factor(contact), y=simulated.time, yend=real.time)) +
+  geom_point(aes(x=as.factor(contact), y=simulated.time), color="red") +
+  geom_point(aes(x=as.factor(contact), y=real.time), color="green") +
+  labs(x="Contact animal", y="Days post exposure") +
+  ylim(0, 7) +
+  theme_light()
 
 # H3N2 analysis -----------------------------------------------------------
 
@@ -291,6 +287,21 @@ H3N2_DI_ferrets <- H3N2_ferrets %>%
   ## exclude all negative tests at 13 and 14 dpi
   filter(dpi < 14) %>%
   mutate(dpe = dpi - 1)
+
+H3N2_donor_names <- unique(H3N2_DI_ferrets$Ferret_ID)
+
+## exclude all animals that never became infected 
+kept_names <- c()
+for (ferret in H3N2_donor_names){
+  ferret_data <- H3N2_DI_ferrets %>%
+    filter(Ferret_ID == ferret)
+  if (max(ferret_data$nw_titer, na.rm=T) > LOD){
+    kept_names <- append(kept_names, ferret)
+  } else {}
+}
+
+H3N2_DI_ferrets <- H3N2_DI_ferrets %>%
+  filter(Ferret_ID %in% kept_names)
 H3N2_donor_names <- unique(H3N2_DI_ferrets$Ferret_ID)
 
 ## initial titer (0dpe) of index animals and donor AUC
@@ -312,69 +323,61 @@ for (ferret in H3N2_donor_names){
 H3N2.init.titers$numeric_dose <- as.numeric(substr(H3N2.init.titers$dose, 4, 4))
 H3N2.init.regression <- lm(nw_titer ~ numeric_dose, H3N2.init.titers)
 
-panel_g <- ggplot(H3N2.init.titers, aes(x=dose, y=nw_titer)) +
-  geom_dotplot(binaxis = "y", stackdir = "center", dotsize = 1, fill="black", color="black") +
+panel_e <- ggplot(H3N2.init.titers, aes(x=numeric_dose, y=nw_titer)) +
+  geom_point(size=2, position=position_jitter(width=0.2, height=0), fill="black", color="black") +
   ## add regression line
   geom_abline(slope = coef(H3N2.init.regression)[[2]], 
               intercept = coef(H3N2.init.regression)[[1]], 
               color="black", linewidth=1) +
   guides(color = "none") +
+  ## signif
+  annotate("text", x=3, y=7, label="*", size=10, color="black") +
+  labs(title="E", x=expression(paste("Index dose (", log[10], TCID[50], ")")), y=expression(paste("Initial titer (", log[10], TCID[50], ")"))) +
   scale_y_continuous(breaks=c(0, 2, 4, 6, 8), limits = c(0, 8)) +
+  scale_x_continuous(breaks=seq(0, 6, 1), limits=c(-0.2, 6.2)) +
   theme_light() +
-  geom_hline(yintercept = 0.5, linetype = 2) +
-  scale_x_discrete(limits=c("10^0","10^1","10^2", "10^3", "10^4", "10^5", "10^6"),
-                   labels=c(0, 1, 2, 3, 4, 5, 6)) +
-  labs(title="G", x=NULL, y=expression(paste("Initial titer (", log[10], TCID[50], ")")))
+  geom_hline(yintercept = 0.5, linetype = 2)
 
 ## linear regression for index AUC
 
 H3N2.donor.AUC$numeric_dose <- as.numeric(substr(H3N2.donor.AUC$dose, 4, 4))
 H3N2.donor.AUC.regression <- lm(AUC ~ numeric_dose, H3N2.donor.AUC)
 
-## AUC - H3N2 contacts
-
-H3N2.AUCs <- data.frame()
-
-for (ferret in H3N2_recipient_names){
-  ## filter data for individual ferrets and normalize by LOD
-  ferret_data <- H3N2_RC_ferrets %>%
-    filter(Ferret_ID == ferret) %>%
-    ## normalize titers by subtracting LOD and then calculate AUC
-    mutate(nw_titer = nw_titer - LOD)
-  y_vals <- ferret_data$nw_titer
-  x_vals <- ferret_data$dpe
-  H3N2.AUCs <- rbind(H3N2.AUCs, c(ferret_data[1,], "AUC"=AUC(x=x_vals, y=y_vals, method = "trapezoid")))
-}
-
-## linear regresssion for recipient AUC
-H3N2.AUCs$numeric_dose <- as.numeric(substr(H3N2.AUCs$donor_dose, 4, 4))
-H3N2_AUC_regression <- lm(AUC ~ numeric_dose, H3N2.AUCs)
-
-## plot index and contact together
-all.AUC <- data.frame("dose" = c(H3N2.donor.AUC[,"dose"], H3N2.AUCs[,"donor_dose"]), 
-                      "AUC" = c(H3N2.donor.AUC[,"AUC"], H3N2.AUCs[,"AUC"]))
-#all.AUC <- rbind(H3N2.donor.AUC[,c("dose", "AUC")], H3N2.AUCs[,c("_dose", "AUC")])
-all.AUC$type <- c(rep("donor", length(H3N2_donor_names)), rep("recipient", length(H3N2_recipient_names)))
-
-panel_h <- ggplot(all.AUC, aes(x=dose, y=AUC, color=type, fill=type)) +
-  geom_dotplot(binaxis = "y", stackdir = "center", dotsize = 1) +
-  scale_color_manual(values = c(donor="black", recipient=H3N2_color)) +
-  scale_fill_manual(name=NULL, labels = c("Index", "Contact"), values = c("black", H3N2_color)) +
+panel_f <- ggplot(H3N2.donor.AUC, aes(x=numeric_dose, y=AUC, color=type, fill=type)) +
+  geom_point(size=2, position=position_jitter(width=0.2, height=0), fill="black", color="black") +
   ## add regression line
-  geom_abline(slope = coef(H3N2_AUC_regression)[[2]], 
-              intercept = coef(H3N2_AUC_regression)[[1]], 
-              color=H3N2_color, linewidth=1) +
   geom_abline(slope = coef(H3N2.donor.AUC.regression)[[2]], 
               intercept = coef(H3N2.donor.AUC.regression)[[1]], 
               color="black", linewidth=1) +
-  labs(title="H", x=NULL, y="AUC (log-transformed)") +
+  labs(title="F", x=expression(paste("Index dose (", log[10], TCID[50], ")")), y="AUC (log-transformed)") +
   guides(color="none") +
+  ## signif
+  annotate("text", x=3, y=26.5, label="*", size=10, color="black") +
   scale_y_continuous(limits = c(0, 30), breaks = seq(0, 30, 4)) +
-  theme_light() +
-  scale_x_discrete(limits=c("10^0","10^1","10^2", "10^3", "10^4", "10^5", "10^6"),
-                   labels=c(0, 1, 2, 3, 4, 5, 6))
+  scale_x_continuous(breaks=seq(0, 6, 1), limits=c(-0.2, 6.2)) +
+  theme_light()
 
-## time of initial positive test in contacts
+## infection outcome by AUC
+
+H3N2.AUC.infx <- merge(x=H3N2.donor.AUC[,c(1, 6)], y=H3N2_ferrets[,c(1,3, 4)], by="Ferret_ID", sort=F, all.x=T) %>%
+  unique()
+H3N2.AUC.infx$infx.outcome = ifelse(H3N2.AUC.infx$DI_RC_Pair %in% H3N2_recipient_names, 1, 0)
+#H3N2.AUC.infx$dose <- as.factor(substr(H3N2.AUC.infx$dose, 4, 4))
+
+H3N2.logit <- glm(infx.outcome ~ AUC, data=H3N2.AUC.infx, family="binomial")
+
+H3N2.AUC.infx$logit <- predict(H3N2.logit, H3N2.AUC.infx[,c(2,5)], type="response")
+
+panel_g <- ggplot(H3N2.AUC.infx, aes(x=AUC, y=infx.outcome, shape=dose)) +
+  geom_point(size=2, fill=H3N2_color, color=H3N2_color) +
+  scale_shape_manual(values=c(3, 16, 4, 17, 18)) +
+  geom_line(aes(x=AUC, y=logit), color=H3N2_color, linewidth=1) +
+  labs(title="G", x="Index AUC (log-transformed)", y="Infection outcome", shape="Index dose") +
+  scale_y_continuous(limits=c(0,1), breaks=c(0, 1)) +
+  xlim(0, 30) +
+  theme_light()
+
+## time of initial positive test in contacts vs initial viral titer
 
 H3N2.time.positive <- data.frame()
 
@@ -386,134 +389,124 @@ for (ferret in H3N2_recipient_names){
   H3N2.time.positive <- rbind(H3N2.time.positive, c(ferret_data[1,1:2], "pos_time" = first_positive_time))
 }
 
-## linear regression for time to first positive test
-H3N2.time.positive$numeric_dose <- as.numeric(substr(H3N2.time.positive$donor_dose, 4, 4))
-H3N2.time.positive.regression <- lm(pos_time ~ numeric_dose, H3N2.time.positive)
+H3N2.time.positive <- merge(x=H3N2.time.positive, y=H3N2_ferrets[,c(1,3)], by.x = "Ferret_ID", by.y="DI_RC_Pair", sort=F, all.x=T) %>%
+  unique()
+H3N2.time.positive <- merge(x=H3N2.time.positive, y=H3N2.init.titers[,c(1,4)], by.x="Ferret_ID.y", by.y="Ferret_ID", sort=F, allx.=T) %>%
+  unique()
+#H3N2.time.positive$donor_dose <- as.factor(substr(H3N2.time.positive$donor_dose, 4, 4))
+names(H3N2.time.positive) <- c("index", "contact", "donor_dose", "pos_time", "initial_titer")
 
-panel_i <- ggplot(H3N2.time.positive, aes(x=donor_dose, y=pos_time)) +
-  geom_dotplot(binaxis = "y", stackdir = "center", dotsize = 1, fill=H3N2_color, color=H3N2_color) +
+## linear regression for time to first positive test
+H3N2.time.positive.regression <- lm(pos_time ~ initial_titer, H3N2.time.positive)
+
+panel_h <- ggplot(H3N2.time.positive, aes(x=initial_titer, y=pos_time, shape=donor_dose)) +
+  geom_point(size=2, position=position_jitter(width=0.2, height=0), fill=H3N2_color, color=H3N2_color) +
+  scale_shape_manual(values=c(3, 16, 4, 17, 18)) +
   ## add regression line
   geom_abline(slope = coef(H3N2.time.positive.regression)[[2]], 
               intercept = coef(H3N2.time.positive.regression)[[1]], 
               color=H3N2_color, linewidth=1) +
-  labs(title="I", x=NULL, y="Time to first positive test (days)") +
+  labs(title="H", x=expression(paste("Initial titer of index (", log[10], TCID[50], ")")), y="Time to first positive test (days)", shape="Index dose") +
   guides(color = "none") +
-  scale_y_continuous(limits = c(0, 12), breaks = seq(0, 12, 2)) +
-  theme_light() +
-  scale_x_discrete(limits=c("10^0","10^1","10^2", "10^3", "10^4", "10^5", "10^6"),
-                   labels=c(0, 1, 2, 3, 4, 5, 6))
+  scale_x_continuous(limits = c(0, 7), breaks=seq(0, 7, 2)) +
+  scale_y_continuous(limits = c(0, 8), breaks = seq(0, 8, 2)) +
+  theme_light()
 
-## peak titer timing and magnitude - H3N2
+H3N2_plots <- ggarrange(panel_e, panel_f, panel_g, panel_h, ncol=4, align="h", common.legend = T, legend="right")
 
-H3N2_peak_titer <- data.frame()
-H3N2_time_peak <- data.frame()
+## forward simulations
 
-for (ferret in H3N2_recipient_names){
-  ferret_data <- H3N2_RC_ferrets %>%
-    filter(Ferret_ID == ferret)
-  max_titer_index <- which.max(ferret_data$nw_titer)
-  first_positive_index <- which.max(ferret_data$nw_titer > LOD)
-  ## time since last negative test to the peak test titer
-  if (first_positive_index > 1){
-    time <- ferret_data[[max_titer_index,"dpe"]] - ferret_data[[first_positive_index-1,"dpe"]]
-  } else { ## if the first positive test is the first test, consider t=0 to be start of infection
-    time <- ferret_data[[max_titer_index,"dpe"]]
+MLE_H3N2 <- 0.044
+
+## exclude F6335 because of missing titer value
+
+H3N2_donor_names <- H3N2_donor_names[c(1:7, 9:19)]
+H3N2_DI_ferrets <- H3N2_DI_ferrets %>%
+  filter(Ferret_ID %in% kept_names)
+
+H3N2_transmission_probs <- vector("list", length(H3N2_donor_names))
+names(H3N2_transmission_probs) <- H3N2_donor_names
+
+## generate predictions for each ferret
+for (ferret in H3N2_donor_names){
+  ferret_data <- H3N2_DI_ferrets %>%
+    filter(Ferret_ID == ferret) %>%
+    dplyr::select(c(dpe, nw_titer))
+  df_1.3 <- interpolation(1, 2, ferret_data, interpolation_interval)
+  df_3.5 <- interpolation(2, 3, ferret_data, interpolation_interval)
+  df_5.7 <- interpolation(3, 4, ferret_data, interpolation_interval)
+  df_7.9 <- interpolation(4, 5, ferret_data, interpolation_interval)
+  df_9.11 <- interpolation(5, 6, ferret_data, interpolation_interval)
+  ## if infection resolves by 11 dpe
+  if (df_9.11[[length(df_9.11$dpe), "nw_titer"]] == LOD){
+    combo <- rbind(ferret_data, df_1.3, df_3.5, df_5.7, df_7.9, df_9.11)
+    combo <- combo %>%
+      ## get rid of duplicate rows
+      distinct() %>%
+      ## specify if values are interpolated or measured
+      mutate(type = if_else(dpe %in% c(1, 3, 5, 7, 9, 11), "measured", "predicted")) %>%
+      arrange(dpe) %>%
+      ## ensure that times are numeric for future integration
+      mutate(dpe = as.numeric(dpe))
+  } else { ## if infection hasn't yet resolved, add another interpolation for assumed negative test
+    times <- seq(df_9.11[[length(df_9.11$dpe), "dpe"]], 13, interpolation_interval)
+    preds <- seq(df_9.11[[length(df_9.11$dpe), "nw_titer"]], 0.5, length.out=length(times))
+    df_11.13 <- data.frame(dpe = times,
+                           nw_titer = preds)
+    combo <- rbind(ferret_data, df_1.3, df_3.5, df_5.7, df_7.9, df_9.11, df_11.13)
+    combo <- combo %>%
+      ## get rid of duplicate rows
+      distinct() %>%
+      ## specify if values are interpolated or measured
+      mutate(type = if_else(dpe %in% c(1, 3, 5, 7, 9, 11), "measured", "predicted")) %>%
+      arrange(dpe) %>%
+      ## ensure that times are numeric for future integration
+      mutate(dpe = as.numeric(dpe))
   }
-  H3N2_time_peak <- rbind(H3N2_time_peak, cbind(ferret_data[1, 1:2], time))
-  H3N2_peak_titer <- rbind(H3N2_peak_titer, ferret_data[max_titer_index,])
+  H3N2_transmission_probs[[ferret]] <- combo
 }
 
-## linear regression for peak titer value
-## use donor inoculum dose as a numeric value on log-scale
-H3N2_peak_titer$numeric_dose <- as.numeric(substr(H3N2_peak_titer$donor_dose, 4, 4))
-H3N2_peak_titer_regression <- lm(nw_titer ~ numeric_dose, H3N2_peak_titer)
+## calculate probability of onwards transmission, mean
+time_means <- c(rep(0, length(H3N2_donor_names)))
+names(time_means) <- H3N2_donor_names
 
-panel_j <- ggplot(H3N2_peak_titer, aes(x=donor_dose, y=nw_titer)) +
-  geom_dotplot(binaxis = "y", stackdir = "center", dotsize = 1, fill=H3N2_color, color=H3N2_color) +
-  ## add regression line
-  geom_abline(slope = coef(H3N2_peak_titer_regression)[[2]], 
-              intercept = coef(H3N2_peak_titer_regression)[[1]], 
-              color=H3N2_color, linewidth=1) +
-  guides(color = "none") +
-  labs(title="J", x=NULL, y=expression(paste("Peak titer (", log[10], TCID[50], ")"))) +
-  scale_y_continuous(breaks=c(0, 2, 4, 6, 8), limits = c(0, 8)) +
-  theme_light() +
-  geom_hline(yintercept = 0.5, linetype = 2) +
-  scale_x_discrete(limits=c("10^0","10^1","10^2", "10^3", "10^4", "10^5", "10^6"),
-                   labels=c(0, 1, 2, 3, 4, 5, 6))
-
-## linear regression for time to peak titer
-H3N2_time_peak$numeric_dose <- as.numeric(substr(H3N2_time_peak$donor_dose, 4, 4))
-H3N2_time_peak_regression <- lm(time ~ numeric_dose, H3N2_time_peak)
-
-panel_k <- ggplot(H3N2_time_peak, aes(x=donor_dose, y=time)) +
-  geom_dotplot(binaxis = "y", stackdir = "center", dotsize = 1, fill=H3N2_color, color=H3N2_color) +
-  ## add regression line
-  geom_abline(slope = coef(H3N2_time_peak_regression)[[2]], 
-              intercept = coef(H3N2_time_peak_regression)[[1]], 
-              color=H3N2_color, linewidth=1) +
-  guides(color = "none") +
-  labs(title="K", x=NULL, y="Time to peak titer (days)") +
-  scale_y_continuous(breaks=c(0, 2, 4, 6, 8, 10), limits = c(0, 10)) +
-  theme_light() +
-  scale_x_discrete(limits=c("10^0","10^1","10^2", "10^3", "10^4", "10^5", "10^6"),
-                   labels=c(0, 1, 2, 3, 4, 5, 6))
-
-## duration of infection - H3N2
-
-H3N2_infx_lengths <- c(rep(0, length(H3N2_recipient_names)))
-names(H3N2_infx_lengths) <- H3N2_recipient_names
-
-for (ferret in H3N2_recipient_names){
-  ferret_data <- H3N2_RC_ferrets %>%
-    filter(Ferret_ID == ferret)
-  ## find first positive test
-  first_positive_index <- which.max(ferret_data$nw_titer > LOD)
-  ## assume that viral growth begins immediately following the last negative test
-  if (first_positive_index > 1){
-    first_positive_time <- ferret_data[[first_positive_index-1, "dpe"]]
-  } else { ## if the first positive test is the first test, assume that
-    ## the contact animal was infected immediately following exposure
-    first_positive_time <- 0
+for (ferret in H3N2_donor_names){
+  data <- H3N2_transmission_probs[[ferret]]
+  lambda_vals <- c()
+  ## calculate a constant force of infection given 1 hour exposure to each viral titer
+  for (k in 1:length(data$nw_titer)){
+    if (data[[k,"nw_titer"]] == LOD){
+      ## if titer = LOD, we assume that the force of infection is 0
+      lambda <- 0 
+    } else { ## otherwise, calculate constant lambda for one-hour exposure
+      lambda <- AUC(x=c(0, exposure.length), y=rep(data[k,"nw_titer"]*MLE_H3N2, 2), method="trapezoid")
+    }
+    lambda_vals[k] <- lambda
   }
-  ## find the time infection resolves
-  post_infection <- ferret_data %>%
-    filter(dpe > first_positive_time)
-  if (post_infection[[length(post_infection$dpe), "nw_titer"]] > LOD){
-    ## if the animal doesn't resolve infection by the last measured timepoint, 
-    ## assume that infection would have resolved at the next test date 
-    resolution_time <- post_infection[[length(post_infection$dpe), "dpe"]] + 2
-  } else {
-    ## if the animal does resolve, just find the first time titers reach LOD again
-    ## provided that there isn't an initial positive test (happens at 3, 5dpe)
-    post_infection <- post_infection %>%
-      filter(dpe > 5)
-    resolution_time <- post_infection[[which.max(post_infection$nw_titer == LOD), "dpe"]]
-  }
-  duration <- resolution_time - first_positive_time
-  H3N2_infx_lengths[ferret] <- duration
+  data$constant_foi <- lambda_vals
+  ## compute the probability of transmission given this force of infection
+  data$prob_transmission <- calculate_pr_contact_pos(data$constant_foi)
+  H3N2_transmission_probs[[ferret]] <- data
+  ## random draws for simulated start times
+  draws <- runif(length(data$prob_transmission), 0, 1)
+  indices <- which(data$prob_transmission > draws)
+  times <- data[indices, "dpe"]
+  time_means[ferret] <- mean(times$dpe)
 }
 
-H3N2_duration <- data.frame(Ferret_ID = H3N2_recipient_names, 
-                            donor_dose = H3N2_time_peak$donor_dose, 
-                            duration = H3N2_infx_lengths)
-## linear regression for duration of infection
-H3N2_duration$numeric_dose <- as.numeric(substr(H3N2_duration$donor_dose, 4, 4))
-H3N2_duration_regression <- lm(duration ~ numeric_dose, H3N2_duration)
+H3N2.time_means <- data.frame(index = names(time_means), 
+                              mean = time_means)
+H3N2.time_means <- merge(x=H3N2.time_means, y=H3N2_ferrets[,c(1,3)], by.x = "index", by.y="Ferret_ID", sort=F, all.x=T) %>%
+  unique()
+H3N2.time_means <- merge(x=H3N2.time_means, y=H3N2.time.positive[,c(1,3)], by.x="DI_RC_Pair", by.y="Ferret_ID", sort=F)
+names(H3N2.time_means) <- c("contact", "index", "simulated.time", "real.time")
 
-panel_l <- ggplot(H3N2_duration, aes(x=donor_dose, y=duration)) +
-  geom_dotplot(binaxis = "y", stackdir = "center", dotsize = 1, fill=H3N2_color, color=H3N2_color) +
-  ## add regression line
-  geom_abline(slope = coef(H3N2_duration_regression)[[2]], 
-              intercept = coef(H3N2_duration_regression)[[1]], 
-              color=H3N2_color, linewidth=1) +
-  labs(title = "L", x=NULL, y="Duration of infection (days)") +
-  guides(color = "none") +
-  scale_y_continuous(limits = c(0, 12), breaks = seq(0, 12, 2)) +
-  theme_light() +
-  scale_x_discrete(limits=c("10^0","10^1","10^2", "10^3", "10^4", "10^5", "10^6"),
-                   labels=c(0, 1, 2, 3, 4, 5, 6))
+H3N2.times <- ggplot(H3N2.time_means) +
+  geom_segment(aes(x=as.factor(contact), xend=as.factor(contact), y=simulated.time, yend=real.time)) +
+  geom_point(aes(x=as.factor(contact), y=simulated.time), color="red") +
+  geom_point(aes(x=as.factor(contact), y=real.time), color="green") +
+  labs(x="Contact animal", y="Days post exposure") +
+  ylim(0, 7) +
+  theme_light()
 
-H3N2_kinetcs_plot <- ggarrange(panel_g, panel_h, panel_i, panel_j, panel_k, panel_l, nrow=2, ncol=3, align = "v", common.legend = T, legend="right")
-H3N2_kinetcs_plot <- annotate_figure(H3N2_kinetcs_plot, bottom = text_grob(expression(paste("Inoculum dose (", log[10], TCID[50], ")"))))
-
+ggarrange(H1N1.times, H3N2.times, nrow=2, labels=c("H1N1", "H3N2"))
