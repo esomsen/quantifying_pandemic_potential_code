@@ -217,7 +217,7 @@ p_10.1 <- ggplot(all_10.1, aes(x=dpch, y=nw_titer, color=DI_RC)) +
   theme(legend.position = "top") +
   theme_light() +
   geom_hline(yintercept = 0.5, linetype = 2) +
-  geom_text(label="TE = 25%", x=11, y=5, color="black") +
+  geom_text(label="TE = 33%", x=11, y=5, color="black") +
   labs(x = NULL, y = NULL, color=NULL)
 
 p_10.0 <- ggplot(all_10.0, aes(x=dpch, y=nw_titer, color=DI_RC)) +
@@ -231,23 +231,14 @@ p_10.0 <- ggplot(all_10.0, aes(x=dpch, y=nw_titer, color=DI_RC)) +
   theme(legend.position = "top") +
   theme_light() +
   geom_hline(yintercept = 0.5, linetype = 2) +
-  geom_text(label="TE = 0%", x=11, y=5, color="black") +
+  geom_text(label="TE = NA", x=11, y=5, color="black") +
   labs(x = NULL, y = NULL, color=NULL)
 
-#p_all <- ggarrange(p_10.0, p_10.1, p_10.2, p_10.3, p_10.4, p_10.6, 
-                   #ncol = 2, 
-                   #nrow = 3, 
-                   #common.legend = T)
-                   #legend = "none")
-
-#p_all <- annotate_figure(p_all, left = text_grob(expression(paste("Viral titer (", log[10], TCID[50], ")")), rot = 90), bottom = "Days post exposure")
-
-#ggarrange(p_all, H3N2_kinetcs_plot, common.legend = T)
 
 H3N2 <- ggarrange(p_10.0, p_10.1, p_10.2, p_10.3, p_10.4, p_10.6, 
                   ncol = 1, 
                   nrow = 6, 
-                  common.legend = T, 
+                  common.legend = T, labels = c("G", "H", "I", "J", "K", "L"), vjust=-.2,
                   legend = "top")
 
 H3N2 <- annotate_figure(H3N2, left = text_grob(expression(paste("Viral titer (", log[10], TCID[50], ")")), rot = 90), bottom = "Days post exposure")

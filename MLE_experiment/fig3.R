@@ -38,7 +38,7 @@ panel_a <- ggplot(combo_MLE_trace, aes(x=s, y=likelihood, color=virus)) +
 
 ## for Pr+ive
 
-calculate_pr_constant <- function(s, VL){
+#calculate_pr_constant <- function(s, VL){
   lambda <- s * VL
   ## integrate from 0 to 1
   integral <- AUC(x=c(0,1), y=c(lambda, lambda), method = "trapezoid")
@@ -52,7 +52,7 @@ VL_probs_H1N1 <- data.frame(log_VL = seq(0, 10, 0.1),
 for (row in 1:nrow(VL_probs_H1N1)){
   slice <- VL_probs_H1N1[row,]
   if (slice$log_VL > 0.5){
-    prob <- calculate_pr_constant(MLE_H1N1, slice$log_VL)
+    prob <- 1 - exp(-slice$log_VL * MLE_H1N1)
   } else {
     prob <- 0
   }
@@ -64,7 +64,7 @@ VL_probs_H3N2 <- data.frame(log_VL = seq(0, 10, 0.1),
 for (row in 1:nrow(VL_probs_H3N2)){
   slice <- VL_probs_H3N2[row,]
   if (slice$log_VL > 0.5){
-    prob <- calculate_pr_constant(MLE_H3N2, slice$log_VL)
+    prob <- 1 - exp(-slice$log_VL * MLE_H3N2)
   } else {
     prob <- 0
   }
@@ -82,8 +82,8 @@ H1N1_ribbon <- data.frame(log_VL = seq(0, 10, 0.1),
 for (row in 1:nrow(H1N1_ribbon)){
   slice <- H1N1_ribbon[row,]
   if (slice$log_VL > 0.5){
-    prob_upper <- calculate_pr_constant(CIs_H1N1[2], slice$log_VL)
-    prob_lower <- calculate_pr_constant(CIs_H1N1[1], slice$log_VL)
+    prob_upper <- 1 - exp(-slice$log_VL * CIs_H1N1[2])
+    prob_lower <- 1 - exp(-slice$log_VL * CIs_H1N1[1])
   } else {
     prob_upper <- 0
     prob_lower <- 0
@@ -98,8 +98,8 @@ H3N2_ribbon <- data.frame(log_VL = seq(0, 10, 0.1),
 for (row in 1:nrow(H3N2_ribbon)){
   slice <- H3N2_ribbon[row,]
   if (slice$log_VL > 0.5){
-    prob_upper <- calculate_pr_constant(CIs_H3N2[2], slice$log_VL)
-    prob_lower <- calculate_pr_constant(CIs_H3N2[1], slice$log_VL)
+    prob_upper <- 1 - exp(-slice$log_VL * CIs_H3N2[2])
+    prob_lower <- 1 - exp(-slice$log_VL * CIs_H3N2[1])
   } else {
     prob_upper <- 0
     prob_lower <- 0
@@ -118,7 +118,6 @@ panel_b <- ggplot(combo_VL_pr, aes(x=log_VL, y=pr, color=virus)) +
   labs(x=expression(paste("Viral titer (", log[10], TCID[50], ")")), y="Probability of transmission", color="Virus") +
   theme_light() +
   guides(color="none")
-
 
 # full figure -------------------------------------------------------------
 

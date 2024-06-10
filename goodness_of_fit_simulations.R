@@ -1,5 +1,7 @@
 library(tidyverse)
 library(khroma)
+library(DescTools)
+library(ggpubr)
 
 interpolation <- function(row1, row2, data, interval){
   index_1 <- data[row1, ]
@@ -44,9 +46,11 @@ H1N1_RC_ferrets <- H1N1_ferrets %>%
   mutate(dpe = dpi - 1)
 H1N1_recipient_names <- unique(H1N1_RC_ferrets$Ferret_ID)
 
-## forward start time simulations
-
 H1N1.MLE <- 0.111
+
+H1N1.actual.or <- 37.703
+
+## transmission simulations
 
 H1N1_transmission_probs <- vector("list", length(H1N1_donor_names))
 names(H1N1_transmission_probs) <- H1N1_donor_names
@@ -90,7 +94,35 @@ for (ferret in H1N1_donor_names){
   H1N1_transmission_probs[[ferret]] <- combo
 }
 
-H1N1.H1N1.simulated.start.times <- matrix(data=0, ncol=length(H1N1_donor_names), nrow=n.sims)
+H1N1.odds.ratio <- c()
+
+for (n in 1:n.sims){
+  prob.transmission <- data.frame()
+  ## find probability of transmission over entire infection
+  for (ferret in H1N1_donor_names){
+    ferret_data <- H1N1_transmission_probs[[ferret]]
+    ## fix AUC vs lambda
+    AUC <- AUC(x=ferret_data$dpe, y=ferret_data$nw_titer - LOD, method="trapezoid")
+    prob.transmission <- rbind(prob.transmission, c(ferret, AUC, 1 - exp(-AUC*H1N1.MLE)))
+  }
+  names(prob.transmission) <- c("Ferret_ID", "AUC", "prob")
+  ## stochastic draws
+  prob.transmission$random.draws <- runif(length(H1N1_donor_names), 0, 1)
+  prob.transmission$outcome <- ifelse(prob.transmission$prob > prob.transmission$random.draws, 1, 0)
+  ## logistic regression for infection outcome by AUC
+  logit <- glm(outcome ~ as.numeric(AUC), data=prob.transmission, family="binomial")
+  ## the log odds of AUC means that for each unit increase in AUC, the odds a contact
+  ## becomes infected increases by a factor = exp(coef(logit AUC))
+  H1N1.odds.ratio[n] <- exp(logit$coefficients[[2]])
+}
+
+## for now, remove entries from when algorithm doesn't converge (perfect separation?)
+
+
+
+## forward start time simulations
+
+H1N1.simulated.start.times <- matrix(data=0, ncol=length(H1N1_donor_names), nrow=n.sims)
 colnames(H1N1.simulated.start.times) <- H1N1_donor_names
 
 for (ferret in H1N1_donor_names){
@@ -101,12 +133,14 @@ for (ferret in H1N1_donor_names){
     ## no transmission if titer is at LOD
     filter(nw_titer > LOD) %>%
     pull(nw_titer) * H1N1.MLE
+  ## do I need to multiply by time?
   transmission.probs <- 1 - exp(-lambdas*bin.length)
   ## stochastic simulations
   for (n in 1:n.sims){
     random.draws <- runif(length(transmission.probs), 0, 1)
+    ## what to do if there is no transmission?
     ## earliest simulated start time
-    H1N1.simulated.start.times[n, ferret] <- bins[which.max(transmission.probs > random.draws)]
+    H1N1.simulated.start.times[n, ferret] <- bins[which(transmission.probs > random.draws)[1]]
   }
 }
 
@@ -126,10 +160,11 @@ for (ferret in H1N1_recipient_names){
 names(H1N1.first.positive.test) <- c("animal", "start.time")
 H1N1.first.positive.test$animal <- as.character(H1N1.first.positive.test$animal)
 
-ggplot() +
+panel_b <- ggplot() +
   geom_violin(data=H1N1.simulated.start.times, aes(x=animal, y=start.time)) +
   geom_point(data=H1N1.first.positive.test, aes(x=animal, y=start.time), color=H1N1_color) +
   labs(x="Index", y="Infection start time") +
+  scale_x_discrete(guide = guide_axis(angle = 90)) +
   scale_y_continuous(limits=c(0, 10), breaks=seq(0, 10, 2)) +
   theme_light()
 
@@ -139,6 +174,10 @@ H3N2_color <- color("muted")(2)
 H3N2_color <- H3N2_color[[2]]
 
 LOD <- 0.5
+
+H3N2.MLE <- 0.044
+
+H3N2.actual.or <- 1.170589
 
 H3N2_ferrets <- read_csv("H3N2_raw_titer_data.csv", col_names = T, show_col_types = F)
 colnames(H3N2_ferrets) <- c("Ferret_ID", "DI_RC", "DI_RC_Pair", "dose", "dpi", "nw_titer", "donor_dose")
@@ -152,7 +191,6 @@ H3N2_DI_ferrets <- H3N2_ferrets %>%
   mutate(dpe = dpi - 1)
 
 H3N2_donor_names <- unique(H3N2_DI_ferrets$Ferret_ID)
-## 7429??
 
 ## exclude all animals that never became infected 
 kept_names <- c()
@@ -192,9 +230,7 @@ H3N2_RC_ferrets <- H3N2_RC_ferrets %>%
   filter(Ferret_ID %in% kept_names)
 H3N2_recipient_names <- unique(H3N2_RC_ferrets$Ferret_ID)
 
-## forward simulations
-
-H3N2.MLE <- 0.044
+## transmission simulations
 
 ## exclude F6335 because of missing titer value
 
@@ -244,6 +280,30 @@ for (ferret in H3N2_donor_names){
   H3N2_transmission_probs[[ferret]] <- combo
 }
 
+H3N2.odds.ratio <- c()
+
+for (n in 1:n.sims){
+  prob.transmission <- data.frame()
+  ## find probability of transmission over entire infection
+  for (ferret in H3N2_donor_names){
+    ferret_data <- H3N2_transmission_probs[[ferret]]
+    ## fix AUC vs lambda
+    AUC <- AUC(x=ferret_data$dpe, y=ferret_data$nw_titer - LOD, method="trapezoid")
+    prob.transmission <- rbind(prob.transmission, c(ferret, AUC, 1 - exp(-AUC*H3N2.MLE)))
+  }
+  names(prob.transmission) <- c("Ferret_ID", "AUC", "prob")
+  ## stochastic draws
+  prob.transmission$random.draws <- runif(length(H3N2_donor_names), 0, 1)
+  prob.transmission$outcome <- ifelse(prob.transmission$prob > prob.transmission$random.draws, 1, 0)
+  ## logistic regression for infection outcome by AUC
+  logit <- glm(outcome ~ as.numeric(AUC), data=prob.transmission, family="binomial")
+  ## the log odds of AUC means that for each unit increase in AUC, the odds a contact
+  ## becomes infected increases by a factor = exp(coef(logit AUC))
+  H3N2.odds.ratio[n] <- exp(logit$coefficients[[2]])
+}
+
+## forward simulations
+
 H3N2.simulated.start.times <- matrix(data=0, ncol=length(H3N2_donor_names), nrow=n.sims)
 colnames(H3N2.simulated.start.times) <- H3N2_donor_names
 
@@ -260,7 +320,7 @@ for (ferret in H3N2_donor_names){
   for (n in 1:n.sims){
     random.draws <- runif(length(transmission.probs), 0, 1)
     ## earliest simulated start time
-    H3N2.simulated.start.times[n, ferret] <- bins[which.max(transmission.probs > random.draws)]
+    H3N2.simulated.start.times[n, ferret] <- bins[which(transmission.probs > random.draws)[1]]
   }
 }
 
@@ -280,9 +340,12 @@ for (ferret in H3N2_recipient_names){
 names(H3N2.first.positive.test) <- c("animal", "start.time")
 H3N2.first.positive.test$animal <- as.character(H3N2.first.positive.test$animal)
 
-ggplot() +
+panel_d <- ggplot() +
   geom_violin(data=H3N2.simulated.start.times, aes(x=animal, y=start.time)) +
   geom_point(data=H3N2.first.positive.test, aes(x=animal, y=start.time), color=H3N2_color) +
   labs(x="Index", y="Infection start time") +
+  scale_x_discrete(guide = guide_axis(angle = 90)) +
   scale_y_continuous(limits=c(0, 10), breaks=seq(0, 10, 2)) +
   theme_light()
+
+ggarrange(panel_b, panel_d, ncol=2, align="h")

@@ -253,7 +253,6 @@ panel_f <- ggplot(H3N2.donor.AUC, aes(x=numeric_dose, y=AUC, color=type, fill=ty
 H3N2.AUC.infx <- merge(x=H3N2.donor.AUC[,c(1, 6)], y=H3N2_ferrets[,c(1,3, 4)], by="Ferret_ID", sort=F, all.x=T) %>%
   unique()
 H3N2.AUC.infx$infx.outcome = ifelse(H3N2.AUC.infx$DI_RC_Pair %in% H3N2_recipient_names, 1, 0)
-#H3N2.AUC.infx$dose <- as.factor(substr(H3N2.AUC.infx$dose, 4, 4))
 
 H3N2.logit <- glm(infx.outcome ~ AUC, data=H3N2.AUC.infx, family="binomial")
 
