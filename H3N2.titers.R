@@ -161,7 +161,7 @@ p_10.6 <- ggplot(all_10.6, aes(x=dpch, y=nw_titer, color=DI_RC, group=pair_shape
   guides(shape = "none") +
   theme_light() +
   geom_hline(yintercept = 0.5, linetype = 2) +
-  geom_text(label="TE = 75%", x=11, y=5, color="black") +
+  geom_text(label="TE = 3/4", x=11, y=5, color="black") +
   labs(x = NULL, y=NULL, color=NULL)
 
 p_10.4 <- ggplot(all_10.4, aes(x=dpch, y=nw_titer, color=DI_RC)) +
@@ -175,7 +175,7 @@ p_10.4 <- ggplot(all_10.4, aes(x=dpch, y=nw_titer, color=DI_RC)) +
   theme(legend.position = "top") +
   theme_light() +
   geom_hline(yintercept = 0.5, linetype = 2) +
-  geom_text(label="TE = 100%", x=11, y=5, color="black") +
+  geom_text(label="TE = 4/4", x=11, y=5, color="black") +
   labs(x = NULL, y = NULL, color=NULL)
 
 p_10.3 <- ggplot(all_10.3, aes(x=dpch, y=nw_titer, color=DI_RC)) +
@@ -189,7 +189,7 @@ p_10.3 <- ggplot(all_10.3, aes(x=dpch, y=nw_titer, color=DI_RC)) +
   theme(legend.position = "top") +
   theme_light() +
   geom_hline(yintercept = 0.5, linetype = 2) +
-  geom_text(label="TE = 25%", x=11, y=5, color="black") +
+  geom_text(label="TE = 1/4", x=11, y=5, color="black") +
   labs(x = NULL, y = NULL, color=NULL)
 
 p_10.2 <- ggplot(all_10.2, aes(x=dpch, y=nw_titer, color=DI_RC)) +
@@ -203,7 +203,7 @@ p_10.2 <- ggplot(all_10.2, aes(x=dpch, y=nw_titer, color=DI_RC)) +
   theme(legend.position = "top") +
   theme_light() +
   geom_hline(yintercept = 0.5, linetype = 2) +
-  geom_text(label="TE = 50%", x=11, y=5, color="black") +
+  geom_text(label="TE = 2/4", x=11, y=5, color="black") +
   labs(x = NULL, y = NULL, color=NULL)
 
 p_10.1 <- ggplot(all_10.1, aes(x=dpch, y=nw_titer, color=DI_RC)) +
@@ -217,7 +217,7 @@ p_10.1 <- ggplot(all_10.1, aes(x=dpch, y=nw_titer, color=DI_RC)) +
   theme(legend.position = "top") +
   theme_light() +
   geom_hline(yintercept = 0.5, linetype = 2) +
-  geom_text(label="TE = 33%", x=11, y=5, color="black") +
+  geom_text(label="TE = 1/3", x=11, y=5, color="black") +
   labs(x = NULL, y = NULL, color=NULL)
 
 p_10.0 <- ggplot(all_10.0, aes(x=dpch, y=nw_titer, color=DI_RC)) +

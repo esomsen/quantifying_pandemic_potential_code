@@ -135,7 +135,7 @@ p_10.6 <- ggplot(all_10.6, aes(x=dpch, y=nw_titer, color=DI_RC, group=pair_shape
   guides(shape = "none") +
   theme_light() +
   geom_hline(yintercept = 0.5, linetype = 2) +
-  geom_text(label="TE = 100%", x=11, y=5, color="black") +
+  geom_text(label="TE = 4/4", x=11, y=5, color="black") +
   labs(x = NULL, y=NULL, color=NULL)
 
 p_10.4 <- ggplot(all_10.4, aes(x=dpch, y=nw_titer, color=DI_RC)) +
@@ -149,7 +149,7 @@ p_10.4 <- ggplot(all_10.4, aes(x=dpch, y=nw_titer, color=DI_RC)) +
   theme(legend.position = "top") +
   theme_light() +
   geom_hline(yintercept = 0.5, linetype = 2) +
-  geom_text(label="TE = 100%", x=11, y=5, color="black") +
+  geom_text(label="TE = 4/4", x=11, y=5, color="black") +
   labs(x = NULL, y = NULL, color=NULL)
 
 p_10.2 <- ggplot(all_10.2, aes(x=dpch, y=nw_titer, color=DI_RC)) +
@@ -163,7 +163,7 @@ p_10.2 <- ggplot(all_10.2, aes(x=dpch, y=nw_titer, color=DI_RC)) +
   theme(legend.position = "top") +
   theme_light() +
   geom_hline(yintercept = 0.5, linetype = 2) +
-  geom_text(label="TE = 100%", x=11, y=5, color="black") +
+  geom_text(label="TE = 4/4", x=11, y=5, color="black") +
   labs(x = NULL, y = NULL, color=NULL)
 
 p_10.1 <- ggplot(all_10.1, aes(x=dpch, y=nw_titer, color=DI_RC)) +
@@ -177,7 +177,7 @@ p_10.1 <- ggplot(all_10.1, aes(x=dpch, y=nw_titer, color=DI_RC)) +
   theme(legend.position = "top") +
   theme_light() +
   geom_hline(yintercept = 0.5, linetype = 2) +
-  geom_text(label="TE = 100%", x=11, y=5, color="black") +
+  geom_text(label="TE = 4/4", x=11, y=5, color="black") +
   labs(x = NULL, y = NULL, color=NULL)
 
 p_10.0 <- ggplot(all_10.0, aes(x=dpch, y=nw_titer, color=DI_RC)) +
@@ -191,7 +191,7 @@ p_10.0 <- ggplot(all_10.0, aes(x=dpch, y=nw_titer, color=DI_RC)) +
   theme(legend.position = "top") +
   theme_light() +
   geom_hline(yintercept = 0.5, linetype = 2) +
-  geom_text(label="TE = 75%", x=11, y=5, color="black") +
+  geom_text(label="TE = 3/4", x=11, y=5, color="black") +
   labs(x = NULL, y = NULL, color=NULL)
 #title = expression(paste("A; ", 10^{0}))
 
@@ -203,16 +203,6 @@ spacer <- ggplot() +
   #theme(plot.title = element_text(hjust=0.03))
   geom_text(aes(0, 0, label="Not tested.")) +
   xlab(NULL)
-
-#p_all <- ggarrange(p_10.0, p_10.1, p_10.2, spacer, p_10.4, p_10.6, 
-                   #ncol = 2, 
-                   #nrow = 3, 
-                   #common.legend = T)
-                   #legend = "none")
-
-#H1N1_titers <- annotate_figure(p_all, left = text_grob(expression(paste("Viral titer (", log[10], TCID[50], ")")), rot = 90), bottom = "Days post exposure")
-
-#ggarrange(H1N1_titers, H1N1_kinetcs_plot, common.legend = TRUE)
 
 H1N1 <- ggarrange(p_10.0, p_10.1, p_10.2, spacer, p_10.4, p_10.6, 
           ncol = 1, 

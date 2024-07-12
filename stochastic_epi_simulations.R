@@ -14,7 +14,10 @@ prob.extinction <- function(R0, k){
 }
 
 R0 <- 1.63
-k <- 2359926
+k <- 1 #2359926
+
+x <- seq(0, 1, 0.001)
+y <- (1 + (R0/k)*(1-x))^-k
 
 prob.extinction(R0, k)
 

@@ -57,7 +57,7 @@ panel_a <- ggplot(H1N1.init.titers, aes(x=numeric_dose, y=nw_titer)) +
   guides(color = "none") +
   ## signif
   annotate("text", x=3, y=7, label="*", size=10, color="black") +
-  labs(title="A", x=NULL, y=expression(paste("Initial titer (", log[10], TCID[50], ")"))) +
+  labs(title="A", x=NULL, y=expression(paste("Index initial titer (", log[10], TCID[50], ")"))) +
   scale_y_continuous(breaks=c(0, 2, 4, 6, 8), limits = c(0, 8)) +
   scale_x_continuous(breaks=seq(0, 6, 1), limits=c(-0.2, 6.2)) +
   theme_light() +
@@ -74,7 +74,7 @@ panel_b <- ggplot(H1N1.donor.AUC, aes(x=numeric_dose, y=AUC, color=type, fill=ty
   geom_abline(slope = coef(H1N1.donor.AUC.regression)[[2]], 
               intercept = coef(H1N1.donor.AUC.regression)[[1]], 
               color="black", linewidth=1) +
-  labs(title="B", x=NULL, y="AUC (log-transformed)") +
+  labs(title="B", x=NULL, y="Index AUC") +
   guides(color="none") +
   scale_y_continuous(limits = c(0, 30), breaks = seq(0, 30, 4)) +
   scale_x_continuous(breaks=seq(0, 6, 1), limits=c(-0.2, 6.2)) +
@@ -93,7 +93,7 @@ panel_c <- ggplot(H1N1.AUC.infx, aes(x=AUC, y=infx.outcome, shape=dose)) +
   geom_point(size=2, fill=H1N1_color, color=H1N1_color) +
   scale_shape_manual(values=c(15, 3, 16, 17, 18)) + 
   stat_smooth(method="glm", se=FALSE, method.args = list(family=binomial), color=H1N1_color) +
-  labs(title="C", x=NULL, y="Infection outcome", shape="Index dose") +
+  labs(title="C", x=NULL, y="Contact infection outcome", shape="Index dose") +
   scale_y_continuous(limits=c(0,1), breaks=c(0, 1)) +
   xlim(0, 30) +
   theme_light()
@@ -127,15 +127,13 @@ panel_d <- ggplot(H1N1.time.positive, aes(x=initial_titer, y=pos_time, shape=don
   geom_abline(slope = coef(H1N1.time.positive.regression)[[2]], 
               intercept = coef(H1N1.time.positive.regression)[[1]], 
               color=H1N1_color, linewidth=1) +
-  labs(title="D", x=NULL, y="Time to first positive test (days)", shape="Index dose") +
+  labs(title="D", x=NULL, y="Time of first positive test (days)", shape="Index dose") +
   guides(color = "none") +
   scale_x_continuous(limits = c(0, 7), breaks=seq(0, 7, 2)) +
   scale_y_continuous(limits = c(0, 8), breaks = seq(0, 8, 2)) +
   theme_light()
 
 H1N1_plots <- ggarrange(panel_a, panel_b, panel_c, panel_d, ncol=4, align = "h", common.legend = T, legend="right")
-
-ggarrange(H1N1_plots, H3N2_plots, nrow=2, align="v")
 
 # H3N2 analysis -----------------------------------------------------------
 
@@ -223,7 +221,7 @@ panel_e <- ggplot(H3N2.init.titers, aes(x=numeric_dose, y=nw_titer)) +
   guides(color = "none") +
   ## signif
   annotate("text", x=3, y=7, label="*", size=10, color="black") +
-  labs(title="E", x=expression(paste("Index dose (", log[10], TCID[50], ")")), y=expression(paste("Initial titer (", log[10], TCID[50], ")"))) +
+  labs(title="E", x=expression(paste("Index dose (", log[10], TCID[50], ")")), y=expression(paste("Index initial titer (", log[10], TCID[50], ")"))) +
   scale_y_continuous(breaks=c(0, 2, 4, 6, 8), limits = c(0, 8)) +
   scale_x_continuous(breaks=seq(0, 6, 1), limits=c(-0.2, 6.2)) +
   theme_light() +
@@ -240,7 +238,7 @@ panel_f <- ggplot(H3N2.donor.AUC, aes(x=numeric_dose, y=AUC, color=type, fill=ty
   geom_abline(slope = coef(H3N2.donor.AUC.regression)[[2]], 
               intercept = coef(H3N2.donor.AUC.regression)[[1]], 
               color="black", linewidth=1) +
-  labs(title="F", x=expression(paste("Index dose (", log[10], TCID[50], ")")), y="AUC (log-transformed)") +
+  labs(title="F", x=expression(paste("Index dose (", log[10], TCID[50], ")")), y="Index AUC") +
   guides(color="none") +
   ## signif
   annotate("text", x=3, y=26.5, label="*", size=10, color="black") +
@@ -257,12 +255,13 @@ H3N2.AUC.infx$infx.outcome = ifelse(H3N2.AUC.infx$DI_RC_Pair %in% H3N2_recipient
 H3N2.logit <- glm(infx.outcome ~ AUC, data=H3N2.AUC.infx, family="binomial")
 
 H3N2.AUC.infx$logit <- predict(H3N2.logit, H3N2.AUC.infx[,c(2,5)], type="response")
+#save(H3N2.AUC.infx, file="H3N2_empirical_logit.RData")
 
 panel_g <- ggplot(H3N2.AUC.infx, aes(x=AUC, y=infx.outcome, shape=dose)) +
   geom_point(size=2, fill=H3N2_color, color=H3N2_color) +
   scale_shape_manual(values=c(3, 16, 4, 17, 18)) +
   geom_line(aes(x=AUC, y=logit), color=H3N2_color, linewidth=1) +
-  labs(title="G", x="Index AUC (log-transformed)", y="Infection outcome", shape="Index dose") +
+  labs(title="G", x="Index AUC", y="Contact infection outcome", shape="Index dose") +
   scale_y_continuous(limits=c(0,1), breaks=c(0, 1)) +
   xlim(0, 30) +
   theme_light()
@@ -296,10 +295,12 @@ panel_h <- ggplot(H3N2.time.positive, aes(x=initial_titer, y=pos_time, shape=don
   geom_abline(slope = coef(H3N2.time.positive.regression)[[2]], 
               intercept = coef(H3N2.time.positive.regression)[[1]], 
               color=H3N2_color, linewidth=1) +
-  labs(title="H", x=expression(paste("Initial titer of index (", log[10], TCID[50], ")")), y="Time to first positive test (days)", shape="Index dose") +
+  labs(title="H", x=expression(paste("Initial titer of index (", log[10], TCID[50], ")")), y="Time of first positive test (days)", shape="Index dose") +
   guides(color = "none") +
   scale_x_continuous(limits = c(0, 7), breaks=seq(0, 7, 2)) +
   scale_y_continuous(limits = c(0, 8), breaks = seq(0, 8, 2)) +
   theme_light()
 
 H3N2_plots <- ggarrange(panel_e, panel_f, panel_g, panel_h, ncol=4, align="h", common.legend = T, legend="right")
+
+ggarrange(H1N1_plots, H3N2_plots, nrow=2, align="v")

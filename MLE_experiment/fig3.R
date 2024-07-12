@@ -38,7 +38,7 @@ panel_a <- ggplot(combo_MLE_trace, aes(x=s, y=likelihood, color=virus)) +
 
 ## for Pr+ive
 
-#calculate_pr_constant <- function(s, VL){
+calculate_pr_constant <- function(s, VL){
   lambda <- s * VL
   ## integrate from 0 to 1
   integral <- AUC(x=c(0,1), y=c(lambda, lambda), method = "trapezoid")
