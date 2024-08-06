@@ -1,0 +1,12 @@
+#!/bin/bash
+#SBATCH --nodes=1
+#SBATCH --mem=8G
+#SBATCH --time=00:30:00
+#SBATCH --partition=short-cpu
+#SBATCH --job-name=pandemic_potential
+#SBATCH --error=pandemic_potential.%J.err
+#SBATCH --output=pandemic_potential.%J.out
+
+module load R
+
+Rscript cluster_pandemic_potential.R

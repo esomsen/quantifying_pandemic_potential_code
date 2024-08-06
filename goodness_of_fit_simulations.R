@@ -127,12 +127,15 @@ n.ps <- 0
 n.all <- 0
 
 for (n in 1:n.sims){
+  ## simulations which have the same transmission outcomes as observed
   if (transmission.sims[1,n] == 0 & transmission.sims[2,n] == 1 & transmission.sims[3,n] == 19){
     n.identical <- n.identical + 1
   }
+  ## simulations which have perfect separation
   if (transmission.sims[1,n] == 0 & transmission.sims[3,n] == 19 | transmission.sims[1,n] == 0 & transmission.sims[2,n] == 0 & transmission.sims[3,n] == 18){
     n.ps <- n.ps + 1
   } 
+  ## simulations where all contacts get infected
   if (transmission.sims[3,n] == 20){
     n.all <- n.all + 1
   }
@@ -173,8 +176,6 @@ for (col in 1:length(H1N1_donor_names)){
 
 H1N1.discrete.start.times <- as.data.frame(H1N1.discrete.start.times)
 H1N1.discrete.start.times$d <- c(1, 3, 5, 7, 10)
-H1N1.discrete.start.times <- H1N1.discrete.start.times %>%
-  pivot_longer(cols=1:20, names_to="Ferret_ID", values_to="count")
 
 ## find first positive test for all contact ferrets
 H1N1.first.positive.test <- data.frame()
@@ -190,14 +191,33 @@ H1N1.first.positive.test <- rbind(H1N1.first.positive.test, c("7820", 10))
 H1N1.first.positive.test$animal <- as.character(H1N1.first.positive.test$animal)
 H1N1.first.positive.test$start.time <- as.double(H1N1.first.positive.test$start.time)
 
+## try using Wilcox test to compare simulated start times to observed value
+## for now, only using simulation values that result in infection
+## not sure if that is the best way to deal with simulations that don't lead to transmission
+## record p vals for each ferret; if below 0.05, simulations don't agree with observations
+H1N1.p.vals <- c(rep(0, length(H1N1_donor_names)))
+names(H1N1.p.vals) <- H1N1_donor_names
+for (ferret in H1N1_donor_names){
+  sims <- as.vector(H1N1.discrete.start.times[,ferret])
+  sim.times <- c(rep(1, sims[1]), rep(3, sims[2]), rep(5, sims[3]), rep(7, sims[4]))
+  H1N1.p.vals[ferret] <- wilcox.test(sim.times, mu=H1N1.first.positive.test %>%
+                              filter(animal == ferret) %>%
+                              dplyr::select(start.time) %>%
+                              as.double(), alternative="two.sided")$p.value
+}
+
+## for plotting
+H1N1.discrete.start.times <- H1N1.discrete.start.times %>%
+  pivot_longer(cols=1:20, names_to="Ferret_ID", values_to="count")
+
 panel_a <- ggplot(H1N1.discrete.start.times, aes(x=Ferret_ID, y=d)) +
   geom_point(aes(size=count), alpha=0.7, color=H1N1_color) +
   geom_point(data=H1N1.first.positive.test, aes(x=animal, y=start.time), color="black") +
   guides(size="none") +
-  labs(x="Index", y="Time of first positive test") +
-  scale_size_continuous(range = c(2, 10)) +
+  labs(x="Index", y="Time of first positive test (dpe)") +
+  scale_size_continuous(range = c(2, 7)) +
   scale_x_discrete(guide = guide_axis(angle = 90), limits=H1N1_donor_names) +
-  scale_y_continuous(limits=c(1, 11), breaks=c(1, 3, 5, 7, 10), labels=c("One", "Three", "Five", "Seven+", "N/A")) +
+  scale_y_continuous(limits=c(1, 11), breaks=c(1, 3, 5, 7, 10), labels=c("1", "3", "5", "7+", "no\ninfection")) +
   theme_light()
 
 # H3N2 --------------------------------------------------------------------
@@ -347,7 +367,7 @@ H3N2.logit.curves <- H3N2.logit.curves %>%
 
 load("H3N2_empirical_logit.RData")
 
-panel_b <- ggplot(H3N2.logit.curves, aes(x=as.numeric(AUC), y=preds, group=simulation)) +
+panel_c <- ggplot(H3N2.logit.curves, aes(x=as.numeric(AUC), y=preds, group=simulation)) +
   geom_line() +
   geom_line(data=H3N2.AUC.infx, aes(x=AUC, y=logit), color=H3N2_color, linewidth=2, inherit.aes=F) +
   labs(x="Index AUC", y="Infection outcome") +
@@ -388,8 +408,6 @@ for (col in 1:length(H3N2_donor_names)){
 
 H3N2.discrete.start.times <- as.data.frame(H3N2.discrete.start.times)
 H3N2.discrete.start.times$d <- c(1, 3, 5, 7, 10)
-H3N2.discrete.start.times <- H3N2.discrete.start.times %>%
-  pivot_longer(cols=1:18, names_to="Ferret_ID", values_to="count")
 
 ## find first positive test for all contact ferrets
 H3N2.first.positive.test <- data.frame()
@@ -400,22 +418,49 @@ for (ferret in H3N2_recipient_names){
   H3N2.first.positive.test <- rbind(H3N2.first.positive.test, ferret_data[which.max(ferret_data$nw_titer > LOD),c("DI_RC_Pair","dpe")])
 }
 names(H3N2.first.positive.test) <- c("animal", "start.time")
+## remove F6335 because of incomplete time course
+H3N2.first.positive.test <- H3N2.first.positive.test %>%
+  filter(animal != "F6335")
+
+## try using Wilcox test to compare simulated start times to observed value
+## for now, only using simulation values that result in infection
+## not sure if that is the best way to deal with simulations that don't lead to transmission
+## record p vals for each ferret; if below 0.05, simulations don't agree with observations
+
+## changing to H3N2.first.pos ferrets to avoid those with no transmission
+H3N2.p.vals <- c(rep(0, length(H3N2.first.positive.test$animal)))
+names(H3N2.p.vals) <- H3N2.first.positive.test$animal
+for (ferret in H3N2.first.positive.test$animal){
+  sims <- as.vector(H3N2.discrete.start.times[,ferret])
+  sim.times <- c(rep(1, sims[1]), rep(3, sims[2]), rep(5, sims[3]), rep(7, sims[4]))
+  H3N2.p.vals[ferret] <- wilcox.test(sim.times, mu=H3N2.first.positive.test %>%
+                                       filter(animal == ferret) %>%
+                                       dplyr::select(start.time) %>%
+                                       as.double(), alternative="two.sided")$p.value
+}
+
+## for plotting
+H3N2.discrete.start.times <- H3N2.discrete.start.times %>%
+  pivot_longer(cols=1:18, names_to="Ferret_ID", values_to="count")
+
 H3N2.first.positive.test <- rbind(H3N2.first.positive.test, data.frame(animal = unique(H3N2.discrete.start.times$Ferret_ID)[!unique(H3N2.discrete.start.times$Ferret_ID) %in% H3N2.first.positive.test$animal], 
                                                                        start.time = 10))
 H3N2.first.positive.test$animal <- as.character(H3N2.first.positive.test$animal)
 H3N2.first.positive.test$start.time <- as.double(H3N2.first.positive.test$start.time)
 
-panel_c <- ggplot(H3N2.discrete.start.times, aes(x=Ferret_ID, y=d)) +
+panel_b <- ggplot(H3N2.discrete.start.times, aes(x=Ferret_ID, y=d)) +
   geom_point(aes(size=count), alpha=0.6, color=H3N2_color) +
   geom_point(data=H3N2.first.positive.test, aes(x=animal, y=start.time), color="black") +
   guides(size="none") +
-  labs(x="Index", y="Time of first positive test") +
-  scale_size_continuous(range = c(2, 10)) +
+  labs(x="Index", y="Time of first positive test (dpe)") +
+  scale_size_continuous(range = c(2, 7)) +
   scale_x_discrete(guide = guide_axis(angle = 90), limits=H3N2_donor_names) +
-  scale_y_continuous(limits=c(1, 11), breaks=c(1, 3, 5, 7, 10), labels=c("One", "Three", "Five", "Seven+", "N/A")) +
+  scale_y_continuous(limits=c(1, 11), breaks=c(1, 3, 5, 7, 10), labels=c("1", "3", "5", "7+", "no\ninfection")) +
   theme_light()
 
 spacer <- ggplot() +
   theme_void()
 
-ggarrange(spacer, panel_a, panel_b, panel_c, ncol=2, nrow=2, align="v", widths=c(1, 1.5), labels=c("", "A", "B", "C"))
+top <- ggarrange(panel_a, panel_b, ncol=2, labels=c("A", "B"))
+bottom <- ggarrange(spacer, panel_c, spacer, ncol=3, labels=c("", "C", ""), widths=c(1, 2, 1))
+ggarrange(top, bottom, nrow=2, align="v")

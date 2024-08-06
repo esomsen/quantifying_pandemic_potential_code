@@ -29,10 +29,11 @@ panel_a <- ggplot(combo_MLE_trace, aes(x=s, y=likelihood, color=virus)) +
   labs(x="s", y="Log likelihood", color="Subtype") +
   geom_vline(xintercept=MLE_H1N1, color=plot_colors[1], linewidth=1, linetype = 2) +
   geom_vline(xintercept=MLE_H3N2, color=plot_colors[2], linewidth=1, linetype = 2) +
-  annotate("rect", xmin=CIs_H1N1[1], xmax=CIs_H1N1[2], ymin=min(combo_MLE_trace$likelihood), ymax=max(combo_MLE_trace$likelihood), alpha=0.2, color=plot_colors[1], fill=plot_colors[1]) +
-  annotate("rect", xmin=CIs_H3N2[1], xmax=CIs_H3N2[2], ymin=min(combo_MLE_trace$likelihood), ymax=max(combo_MLE_trace$likelihood), alpha=0.2, color=plot_colors[2], fill=plot_colors[2]) +
-  theme_light() +
-  theme(legend.position = "top")
+  annotate("rect", xmin=CIs_H1N1[1], xmax=CIs_H1N1[2], ymin=-80, ymax=-15, alpha=0.2, color=plot_colors[1], fill=plot_colors[1]) +
+  annotate("rect", xmin=CIs_H3N2[1], xmax=CIs_H3N2[2], ymin=-80, ymax=-15, alpha=0.2, color=plot_colors[2], fill=plot_colors[2]) +
+  scale_y_continuous(limits=c(-80, -15), expand=c(0, 0)) +
+  theme(legend.position = "top") +
+  theme_light()
 
 # panel B -----------------------------------------------------------------
 
@@ -120,7 +121,5 @@ panel_b <- ggplot(combo_VL_pr, aes(x=log_VL, y=pr, color=virus)) +
   guides(color="none")
 
 # full figure -------------------------------------------------------------
-
-## combine
 
 ggarrange(panel_a, panel_b, ncol=2, labels = c("A", "B"), common.legend = T, legend = "bottom")
