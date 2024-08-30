@@ -50,10 +50,14 @@ length.chains <- data.frame(Subtype = "H3N2",
 
 # intrinsic growth rate ---------------------------------------------------
 
-H1N1.G <- 4.11
-H1N1.sigma <- sqrt(2.9592369/(0.7198616^2))
-H3N2.G <- 4.37
-H3N2.sigma <- sqrt(2.6401310/(0.6038136^2))
+H1N1.shape <- 2.9592369
+H1N1.rate <- 0.7198616
+#H1N1.G <- 4.11
+#H1N1.sigma <- sqrt(2.9592369/(0.7198616^2))
+H3N2.shape <- 2.6401310
+H3N2.rate <- 0.6038136
+#H3N2.G <- 4.37
+#H3N2.sigma <- sqrt(2.6401310/(0.6038136^2))
 
 growth.rate <- function(R, G, sigma){
   r <- - (-G + sqrt(G^2 - 2*sigma^2*log(R))) / sigma^2
@@ -66,16 +70,22 @@ rates <- data.frame(Subtype = c("H1N1", "H3N2"),
 #growth.rate(H1N1.R0, H1N1.G, H1N1.sigma)
 #growth.rate(H3N2.R0, H3N2.G, H3N2.sigma)
 
+rates <- data.frame(Subtype = c("H1N1", "H3N2"), 
+                    r = c(H1N1.rate*(H1N1.R0^(1/H1N1.shape) - 1), H3N2.rate*(H3N2.R0^(1/H3N2.shape) - 1)))
+
+H1N1.rate*(H1N1.R0^(1/H1N1.shape) - 1)
+H3N2.rate*(H3N2.R0^(1/H3N2.shape) - 1)
+
 # plots -------------------------------------------------------------------
 
 plot_colors <- color("muted")(2)
 
-panel_a <- ggplot(extinction.probs, aes(x=Subtype, y=prob, color=Subtype)) +
-  geom_point(size=4) +
-  geom_segment(aes(x=Subtype, xend=Subtype, y=0, yend=prob), linewidth = 1.5) +
+panel_a <- ggplot(extinction.probs, aes(x=Subtype, y=1-prob, color=Subtype, fill=Subtype)) +
+  geom_col(width=0.5) +
   scale_color_manual(values = c(plot_colors[[1]], plot_colors[[2]])) + 
-  guides(color="none") +
-  labs(x=NULL, y="Probability of extinction") +
+  scale_fill_manual(values = c(plot_colors[[1]], plot_colors[[2]])) +
+  guides(color="none", fill="none") +
+  labs(x=NULL, y="Probability of establishment") +
   theme_light()
 
 ggplot(length.chains, aes(x=Subtype, y=length)) +
@@ -84,11 +94,11 @@ ggplot(length.chains, aes(x=Subtype, y=length)) +
   labs(x="Subtype", y="Average length of stuttering chain") +
   theme_light()
 
-panel_b <- ggplot(rates, aes(x=Subtype, y=r, color=Subtype)) +
-  geom_point(size=4) +
-  geom_segment(aes(x=Subtype, xend=Subtype, y=0, yend=r), linewidth = 1.5) +
+panel_b <- ggplot(rates, aes(x=Subtype, y=r, color=Subtype, fill=Subtype)) +
+  geom_col(width=0.5) +
   scale_color_manual(values = c(plot_colors[[1]], plot_colors[[2]])) + 
-  guides(color="none") +
+  scale_fill_manual(values = c(plot_colors[[1]], plot_colors[[2]])) +
+  guides(color="none", fill="none") +
   ylim(-0.25, 0.25) +
   labs(x=NULL, y="Intrinsic growth rate") +
   theme_light()

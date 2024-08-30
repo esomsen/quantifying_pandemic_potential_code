@@ -1,6 +1,7 @@
 library(khroma)
 library(tidyverse)
 library(DescTools)
+library(ggpubr)
 
 # H1N1 --------------------------------------------------------------------
 
@@ -25,7 +26,33 @@ H1N1_donor_names <- unique(H1N1_DI_ferrets$Ferret_ID)
 
 LOD <- 0.5
 
+H1N1_color <- color("muted")(1)
+H1N1_color <- H1N1_color[[1]]
+
 ## ferret 5775; remove "rebound" positive test at 11 dpe
+
+## titers figure
+
+donor_5774 <- H1N1_DI_ferrets %>%
+  filter(Ferret_ID == "5774")
+recipient_5775 <- H1N1_RC_ferrets %>%
+  filter(Ferret_ID == "5775")
+
+panel_a_titers <- data.frame(donor = donor_5774$nw_titer, 
+                             recipient = recipient_5775$nw_titer) %>%
+  pivot_longer(cols=1:2, names_to="animal", values_to="titer") %>%
+  mutate(dpe = c(0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11))
+
+panel_a <- ggplot(panel_a_titers, aes(x=dpe, y=titer, color=animal)) +
+  geom_point(shape=15, size=2) +
+  geom_line(linewidth=1) +
+  scale_color_manual(labels = c("Index", "Contact"), values = c("black", H1N1_color)) +
+  scale_x_continuous(limits=c(0, 13), breaks = seq(0, 13, 2)) +
+  scale_y_continuous(limits=c(0, 7), breaks = seq(0, 7, 2)) +
+  geom_segment(aes(x=7, y=4, xend=8.5, yend=2), arrow = arrow(length=unit(.5, 'cm')), color="black", lwd=2) +
+  theme_light() +
+  geom_hline(yintercept = 0.5, linetype = 2) +
+  labs(x = "Days post exposure", y=expression(paste("Viral titer (", log[10], TCID[50], ")")), color=NULL)
 
 H1N1_RC_ferrets[69, 4] <- LOD
 
@@ -67,7 +94,7 @@ H1N1_DI_RC_AUC_regression <- lm(Contact.AUC ~ Index.AUC, H1N1.AUC.AUC)
 
 ## AUC remains insignificant
 
-## calculate donor AUC (up to time of first positive test?)
+## calculate donor AUC
 
 H1N1_donor_AUCs <- data.frame()
 
@@ -128,6 +155,9 @@ colnames(H3N2_ferrets) <- c("Ferret_ID", "DI_RC", "DI_RC_Pair", "dose", "dpi", "
 
 LOD <- 0.5
 
+H3N2_color <- color("muted")(2)
+H3N2_color <- H3N2_color[[2]]
+
 H3N2_RC_ferrets <- H3N2_ferrets %>%
   filter(DI_RC == "RC") %>%
   mutate(Ferret_ID = as.factor(Ferret_ID)) %>%
@@ -178,9 +208,56 @@ H3N2_donor_names <- unique(H3N2_DI_ferrets$Ferret_ID)
 
 ## ferret 626; remove initial positive test followed by a negative test
 
+donor_671 <- H3N2_DI_ferrets %>%
+  filter(Ferret_ID == "671")
+recipient_626 <- H3N2_RC_ferrets %>%
+  filter(Ferret_ID == "626")
+
+panel_b_titers <- data.frame(donor = donor_671$nw_titer[1:6], 
+                             recipient = recipient_626$nw_titer) %>%
+  pivot_longer(cols=1:2, names_to="animal", values_to="titer") %>%
+  mutate(dpe = c(0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11)) %>%
+  mutate(LOD_shape = ifelse(titer <= 0.5, "below", "above"))
+
+panel_b <- ggplot(panel_b_titers, aes(x=dpe, y=titer, color=animal)) +
+  geom_point(shape=16, size=2) +
+  geom_line(linewidth=1) +
+  scale_color_manual(labels = c("Index", "Contact"), values = c("black", H3N2_color)) +
+  scale_x_continuous(limits=c(0, 13), breaks = seq(0, 13, 2)) +
+  scale_y_continuous(limits=c(0, 7), breaks = seq(0, 7, 2)) +
+  guides(shape = "none") +
+  geom_segment(aes(x=3, y=4, xend=2, yend=2), arrow = arrow(length=unit(.5, 'cm')), color="black", lwd=2) +
+  theme_light() +
+  geom_hline(yintercept = 0.5, linetype = 2) +
+  labs(x = "Days post exposure", y=expression(paste("Viral titer (", log[10], TCID[50], ")")), color=NULL)
+
 H3N2_RC_ferrets[49, 4] <- LOD
 
 ## ferret 2124; remove initial positive test followed by a negative test
+
+donor_2120 <- H3N2_DI_ferrets %>%
+  filter(Ferret_ID == "2120")
+recipient_2124 <- H3N2_RC_ferrets %>%
+  filter(Ferret_ID == "2124")
+
+panel_c_titers <- data.frame(donor = donor_2120$nw_titer, 
+                             recipient = recipient_2124$nw_titer) %>%
+  pivot_longer(cols=1:2, names_to="animal", values_to="titer") %>%
+  mutate(dpe = c(0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11)) %>%
+  mutate(LOD_shape = ifelse(titer <= 0.5, "below", "above"))
+
+panel_c <- ggplot(panel_c_titers, aes(x=dpe, y=titer, color=animal)) +
+  geom_point(shape=16, size=2) +
+  geom_line(linewidth=1) +
+  scale_color_manual(labels = c("Index", "Contact"), values = c("black", H3N2_color)) +
+  scale_x_continuous(limits=c(0, 13), breaks = seq(0, 13, 2)) +
+  scale_y_continuous(limits=c(0, 7), breaks = seq(0, 7, 2)) +
+  guides(shape = "none") +
+  geom_segment(aes(x=4, y=3, xend=2, yend=1.5), arrow = arrow(length=unit(.5, 'cm')), color="black", lwd=2) +
+  theme_light() +
+  geom_hline(yintercept = 0.5, linetype = 2) +
+  labs(x = "Days post exposure", y=expression(paste("Viral titer (", log[10], TCID[50], ")")), color=NULL)
+
 
 H3N2_RC_ferrets[2,4] <- LOD
 
@@ -300,3 +377,8 @@ H3N2_infx_lengths <- merge(H3N2_infx_lengths, H3N2_donor_AUCs, by="Ferret_ID")
 H3N2_duration_regression <- lm(duration ~ donor_AUC, H3N2_infx_lengths)
 
 ## duration remains insignificant
+
+
+## combo plots
+
+ggarrange(panel_a, panel_b, panel_c, legend="bottom", ncol=3, labels=c("A", "B", "C"))

@@ -1,6 +1,6 @@
-library(ggpubr)
 library(khroma)
 library(tidyverse)
+library(ggpubr)
 library(DescTools)
 
 # H1N1 analyses -----------------------------------------------------------
