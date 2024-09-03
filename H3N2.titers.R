@@ -154,7 +154,7 @@ all_10.0$shape_combo <- paste(all_10.0$LOD_shape, "-", all_10.0$pair_shape)
 p_10.6 <- ggplot(all_10.6, aes(x=dpch, y=nw_titer, color=DI_RC, group=pair_shape)) +
   geom_point(aes(shape=shape_combo), size=2) +
   geom_line(aes(group=Ferret_ID), linewidth=1) +
-  scale_color_manual(labels = c("Index", "Contact"), values = c("black", H3N2_color)) +
+  scale_color_manual(labels = c("H3N2 Index", "H3N2 Contact"), values = c("black", H3N2_color)) +
   scale_shape_manual(values=c(15, 16, 17, 18, 0, 1, 2, 5)) +
   scale_x_continuous(limits=c(0, 13), breaks = seq(0, 13, 2)) +
   scale_y_continuous(limits=c(0, 7), breaks = seq(0, 7, 2)) +
@@ -167,7 +167,7 @@ p_10.6 <- ggplot(all_10.6, aes(x=dpch, y=nw_titer, color=DI_RC, group=pair_shape
 p_10.4 <- ggplot(all_10.4, aes(x=dpch, y=nw_titer, color=DI_RC)) +
   geom_point(aes(shape=shape_combo), size=2) +
   geom_line(aes(group=Ferret_ID), linewidth=1) +
-  scale_color_manual(labels = c("Index", "Contact"), values = c("black", H3N2_color)) +
+  scale_color_manual(labels = c("H3N2 Index", "H3N2 Contact"), values = c("black", H3N2_color)) +
   scale_shape_manual(values=c(15, 16, 17, 18, 0, 1, 2, 5)) +
   scale_x_continuous(limits=c(0, 13), breaks = seq(0, 13, 2)) +
   scale_y_continuous(limits=c(0, 7), breaks = seq(0, 7, 2)) +
@@ -181,7 +181,7 @@ p_10.4 <- ggplot(all_10.4, aes(x=dpch, y=nw_titer, color=DI_RC)) +
 p_10.3 <- ggplot(all_10.3, aes(x=dpch, y=nw_titer, color=DI_RC)) +
   geom_point(aes(shape=shape_combo), size=2) +
   geom_line(aes(group=Ferret_ID), linewidth=1) +
-  scale_color_manual(labels = c("Index", "Contact"), values = c("black", H3N2_color)) +
+  scale_color_manual(labels = c("H3N2 Index", "H3N2 Contact"), values = c("black", H3N2_color)) +
   scale_shape_manual(values=c(15, 16, 17, 18, 0, 1, 2, 5)) +
   scale_x_continuous(limits=c(0, 13), breaks = seq(0, 13, 2)) +
   scale_y_continuous(limits=c(0, 7), breaks = seq(0, 7, 2)) +
@@ -195,7 +195,7 @@ p_10.3 <- ggplot(all_10.3, aes(x=dpch, y=nw_titer, color=DI_RC)) +
 p_10.2 <- ggplot(all_10.2, aes(x=dpch, y=nw_titer, color=DI_RC)) +
   geom_point(aes(shape=shape_combo), size=2) +
   geom_line(aes(group=Ferret_ID), linewidth=1) +
-  scale_color_manual(labels = c("Index", "Contact"), values = c("black", H3N2_color)) +
+  scale_color_manual(labels = c("H3N2 Index", "H3N2 Contact"), values = c("black", H3N2_color)) +
   scale_shape_manual(values=c(15, 16, 17, 18, 0, 1, 2, 5)) +
   scale_x_continuous(limits=c(0, 13), breaks = seq(0, 13, 2)) +
   scale_y_continuous(limits=c(0, 7), breaks = seq(0, 7, 2)) +
@@ -209,7 +209,7 @@ p_10.2 <- ggplot(all_10.2, aes(x=dpch, y=nw_titer, color=DI_RC)) +
 p_10.1 <- ggplot(all_10.1, aes(x=dpch, y=nw_titer, color=DI_RC)) +
   geom_point(aes(shape=shape_combo), size=2) +
   geom_line(aes(group=Ferret_ID), linewidth=1) +
-  scale_color_manual(labels = c("Index", "Contact"), values = c("black", H3N2_color)) +
+  scale_color_manual(labels = c("H3N2 Index", "H3N2 Contact"), values = c("black", H3N2_color)) +
   scale_shape_manual(values=c(15, 16, 17, 18, 0, 1, 2, 5)) +
   scale_x_continuous(limits=c(0, 13), breaks = seq(0, 13, 2)) +
   scale_y_continuous(limits=c(0, 7), breaks = seq(0, 7, 2)) +
@@ -223,7 +223,7 @@ p_10.1 <- ggplot(all_10.1, aes(x=dpch, y=nw_titer, color=DI_RC)) +
 p_10.0 <- ggplot(all_10.0, aes(x=dpch, y=nw_titer, color=DI_RC)) +
   geom_point(aes(shape=shape_combo), size=2) +
   geom_line(aes(group=Ferret_ID), linewidth=1) +
-  scale_color_manual(labels = c("Index", "Contact"), values = c("black", H3N2_color)) +
+  scale_color_manual(labels = c("H3N2 Index", "H3N2 Contact"), values = c("black", H3N2_color)) +
   scale_shape_manual(values=c(15, 16, 17, 18, 0, 1, 2, 5)) +
   scale_x_continuous(limits=c(0, 13), breaks = seq(0, 13, 2)) +
   scale_y_continuous(limits=c(0, 7), breaks = seq(0, 7, 2)) +
@@ -238,9 +238,10 @@ p_10.0 <- ggplot(all_10.0, aes(x=dpch, y=nw_titer, color=DI_RC)) +
 H3N2 <- ggarrange(p_10.0, p_10.1, p_10.2, p_10.3, p_10.4, p_10.6, 
                   ncol = 1, 
                   nrow = 6, 
-                  common.legend = T, labels = c("G", "H", "I", "J", "K", "L"), vjust=-.2,
+                  common.legend = T, labels = c("G", "H", "I", "J", "K", "L"), 
+                  vjust=-.1,
                   legend = "top")
 
-H3N2 <- annotate_figure(H3N2, left = text_grob(expression(paste("Viral titer (", log[10], TCID[50], ")")), rot = 90), bottom = "Days post exposure")
+H3N2 <- annotate_figure(H3N2, left = text_grob(expression(paste("Viral titer (", log[10], TCID[50], "/mL", ")")), rot = 90), bottom = "Days post exposure")
 
 ggarrange(H1N1, H3N2, ncol=2)
