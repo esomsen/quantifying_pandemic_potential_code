@@ -121,8 +121,8 @@ H1N1.time.positive.regression <- lm(pos_time ~ initial_titer, H1N1.time.positive
 
 panel_d <- ggplot(H1N1.time.positive, aes(x=initial_titer, y=pos_time, shape=donor_dose)) +
   geom_point(size=2, position=position_jitter(width=0.2, height=0), fill=H1N1_color, color=H1N1_color) +
-  scale_shape_manual(values=c(15, 3, 16, 17, 18)) +
-  ## add regression line
+  scale_shape_manual(values=c(3, 16, 4, 17, 18), labels=c(expression(10^0), expression(10^1), expression(10^2), expression(10^4), expression(10^6))) +
+  # add regression line
   geom_abline(slope = coef(H1N1.time.positive.regression)[[2]], 
               intercept = coef(H1N1.time.positive.regression)[[1]], 
               color=H1N1_color, linewidth=1) +
@@ -237,7 +237,7 @@ panel_f <- ggplot(H3N2.donor.AUC, aes(x=numeric_dose, y=AUC, color=type, fill=ty
   geom_abline(slope = coef(H3N2.donor.AUC.regression)[[2]], 
               intercept = coef(H3N2.donor.AUC.regression)[[1]], 
               color="black", linewidth=1) +
-  labs(title="F", x=expression(paste("Index dose (",TCID[50], ")")), y="Index AUC") +
+  labs(title="F", x=expression(paste("Index dose (",TCID[50], "/mL)")), y="Index AUC") +
   guides(color="none") +
   ## signif
   annotate("text", x=3, y=26.5, label="*", size=10, color="black") +
@@ -289,7 +289,7 @@ H3N2.time.positive.regression <- lm(pos_time ~ initial_titer, H3N2.time.positive
 
 panel_h <- ggplot(H3N2.time.positive, aes(x=initial_titer, y=pos_time, shape=donor_dose)) +
   geom_point(size=2, position=position_jitter(width=0.2, height=0), fill=H3N2_color, color=H3N2_color) +
-  scale_shape_manual(values=c(3, 16, 4, 17, 18)) +
+  scale_shape_manual(values=c(3, 16, 4, 17, 18), labels=c(expression(10^1), expression(10^2), expression(10^3), expression(10^4), expression(10^6))) +
   ## add regression line
   geom_abline(slope = coef(H3N2.time.positive.regression)[[2]], 
               intercept = coef(H3N2.time.positive.regression)[[1]], 
