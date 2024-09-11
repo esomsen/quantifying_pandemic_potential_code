@@ -48,11 +48,11 @@ panel_a <- ggplot(panel_a_titers, aes(x=dpe, y=titer, color=animal)) +
   geom_line(linewidth=1) +
   scale_color_manual(labels = c("Index", "Contact"), values = c("black", H1N1_color)) +
   scale_x_continuous(limits=c(0, 13), breaks = seq(0, 13, 2)) +
-  scale_y_continuous(limits=c(0, 7), breaks = seq(0, 7, 2)) +
-  geom_segment(aes(x=7, y=4, xend=8.5, yend=2), arrow = arrow(length=unit(.5, 'cm')), color="black", lwd=2) +
+  scale_y_continuous(limits=c(0, 7), breaks = seq(0, 7, 2), labels=c(expression(10^0), expression(10^2), expression(10^4), expression(10^6))) +
+  geom_segment(aes(x=9, y=4, xend=11, yend=2.25), arrow = arrow(length=unit(.5, 'cm')), color="black", lwd=2) +
   theme_light() +
   geom_hline(yintercept = 0.5, linetype = 2) +
-  labs(x = "Days post exposure", y=expression(paste("Viral titer (", log[10], TCID[50], ")")), color=NULL)
+  labs(x = "Days post exposure", y=expression(paste("Viral titer (", TCID[50], "/mL)")), color=NULL)
 
 H1N1_RC_ferrets[69, 4] <- LOD
 
@@ -224,12 +224,12 @@ panel_b <- ggplot(panel_b_titers, aes(x=dpe, y=titer, color=animal)) +
   geom_line(linewidth=1) +
   scale_color_manual(labels = c("Index", "Contact"), values = c("black", H3N2_color)) +
   scale_x_continuous(limits=c(0, 13), breaks = seq(0, 13, 2)) +
-  scale_y_continuous(limits=c(0, 7), breaks = seq(0, 7, 2)) +
+  scale_y_continuous(limits=c(0, 7), breaks = seq(0, 7, 2), labels=c(expression(10^0), expression(10^2), expression(10^4), expression(10^6))) +
   guides(shape = "none") +
-  geom_segment(aes(x=3, y=4, xend=2, yend=2), arrow = arrow(length=unit(.5, 'cm')), color="black", lwd=2) +
+  geom_segment(aes(x=3, y=4, xend=1, yend=2.25), arrow = arrow(length=unit(.5, 'cm')), color="black", lwd=2) +
   theme_light() +
   geom_hline(yintercept = 0.5, linetype = 2) +
-  labs(x = "Days post exposure", y=expression(paste("Viral titer (", log[10], TCID[50], ")")), color=NULL)
+  labs(x = "Days post exposure", y=expression(paste("Viral titer (", TCID[50], "/mL)")), color=NULL)
 
 H3N2_RC_ferrets[49, 4] <- LOD
 
@@ -251,13 +251,12 @@ panel_c <- ggplot(panel_c_titers, aes(x=dpe, y=titer, color=animal)) +
   geom_line(linewidth=1) +
   scale_color_manual(labels = c("Index", "Contact"), values = c("black", H3N2_color)) +
   scale_x_continuous(limits=c(0, 13), breaks = seq(0, 13, 2)) +
-  scale_y_continuous(limits=c(0, 7), breaks = seq(0, 7, 2)) +
+  scale_y_continuous(limits=c(0, 7), breaks = seq(0, 7, 2), labels=c(expression(10^0), expression(10^2), expression(10^4), expression(10^6))) +
   guides(shape = "none") +
-  geom_segment(aes(x=4, y=3, xend=2, yend=1.5), arrow = arrow(length=unit(.5, 'cm')), color="black", lwd=2) +
+  geom_segment(aes(x=3, y=3, xend=1, yend=1.25), arrow = arrow(length=unit(.5, 'cm')), color="black", lwd=2) +
   theme_light() +
   geom_hline(yintercept = 0.5, linetype = 2) +
-  labs(x = "Days post exposure", y=expression(paste("Viral titer (", log[10], TCID[50], ")")), color=NULL)
-
+  labs(x = "Days post exposure", y=expression(paste("Viral titer (", TCID[50], "/mL)")), color=NULL)
 
 H3N2_RC_ferrets[2,4] <- LOD
 
@@ -297,9 +296,9 @@ H3N2.AUC.AUC <- merge(x=H3N2.AUC.AUC, y=H3N2.AUCs[,c(1,6)], by.x="DI_RC_Pair", b
 names(H3N2.AUC.AUC) <- c("Contact", "Index", "Index.AUC", "donor_dose", "Contact.AUC")
 H3N2_DI_RC_AUC_regression <- lm(Contact.AUC ~ Index.AUC, H3N2.AUC.AUC)
 
-## AUC closer to significant, p=0.0857
+## AUC closer to significant
 
-## calculate donor AUC (up to time of first positive test?)
+## calculate donor AUC
 
 H3N2_donor_AUCs <- data.frame()
 
@@ -339,7 +338,7 @@ H3N2_time_peak <- merge(H3N2_time_peak, H3N2_donor_AUCs, by="Ferret_ID")
 ## linear regression for time to peak titer
 H3N2_time_peak_regression <- lm(time ~ donor_AUC, H3N2_time_peak)
 
-## time to first positive test remains insignificant, slope changes by 0.01
+## time to first positive test remains insignificant
 
 ## duration of infection - H3N2
 
@@ -377,7 +376,6 @@ H3N2_infx_lengths <- merge(H3N2_infx_lengths, H3N2_donor_AUCs, by="Ferret_ID")
 H3N2_duration_regression <- lm(duration ~ donor_AUC, H3N2_infx_lengths)
 
 ## duration remains insignificant
-
 
 ## combo plots
 
