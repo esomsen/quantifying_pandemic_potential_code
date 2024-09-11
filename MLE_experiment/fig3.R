@@ -117,7 +117,7 @@ panel_b <- ggplot(combo_VL_pr, aes(x=log_VL, y=pr, color=virus)) +
   geom_ribbon(data=H3N2_ribbon, aes(x=log_VL, ymin=prob_lower, ymax=prob_upper), fill=plot_colors[[2]], alpha = 0.2, inherit.aes = F) +
   scale_color_manual(values = c(plot_colors[[1]], plot_colors[[2]])) + 
   scale_x_continuous(limits=c(0, 7), breaks = seq(0, 7, 2), labels=c(expression(10^0), expression(10^2), expression(10^4), expression(10^6))) +
-  labs(x=expression(paste("Viral titer (", TCID[50], ")")), y="Probability of transmission", color="Virus") +
+  labs(x=expression(paste("Viral titer (", TCID[50], "/mL)")), y="Probability of transmission", color="Virus") +
   theme_light() +
   guides(color="none")
 
