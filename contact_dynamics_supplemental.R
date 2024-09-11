@@ -75,7 +75,7 @@ panel_a <- ggplot(H1N1.AUC.AUC, aes(x=Index.AUC, y=Contact.AUC)) +
   labs(title="A", x=NULL, y="Contact AUC") +
   theme_light()
 
-## calculate donor AUC (up to time of first positive test?)
+## calculate donor AUC
 
 H1N1_donor_AUCs <- data.frame()
 
