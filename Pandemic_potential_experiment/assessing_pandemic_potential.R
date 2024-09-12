@@ -4,6 +4,7 @@ library(khroma)
 library(MASS)
 library(fitdistrplus)
 library(ggpubr)
+library(scales)
 
 ## function to add linear interpolations between measured datapoints
 interpolation <- function(row1, row2, data, interval){
@@ -178,7 +179,7 @@ for (i in 1:its){
 
 panel_a <- ggplot(as.data.frame(H1N1.indv.Z[,5]), aes(x=H1N1.indv.Z[, 5])) +
   geom_histogram(closed="right", center=1, binwidth=0.5, fill=plot_colors[[1]]) +
-  labs(x="Number of secondary cases", y="Number of indices") +
+  labs(x="Number of secondary cases", y="Number") +
   scale_x_continuous(breaks=c(0, 1, 2, 3, 4, 5), limits=c(-0.5, 5)) +
   ylim(0, 8) +
   theme_light()
@@ -187,8 +188,8 @@ panel_a <- ggplot(as.data.frame(H1N1.indv.Z[,5]), aes(x=H1N1.indv.Z[, 5])) +
 
 panel_e <- ggplot(as.data.frame(H1N1.gen.times[,5]), aes(x=H1N1.gen.times[, 5])) +
   geom_histogram(closed="right", center=1, binwidth=0.25, fill=plot_colors[[1]]) +
-  labs(x="Generation time (days)", y="Number of contacts") +
-  scale_x_continuous(breaks=seq(0, 12, 2)) +
+  labs(x="Generation time (days)", y="Number") +
+  scale_x_continuous(breaks=seq(0, 10, 2), limits=c(-0.5, 10)) +
   ylim(0, 8) +
   theme_light()
 
@@ -369,19 +370,19 @@ for (i in 1:its){
 
 ## plot offspring distribution for one simulation
 
-panel_b <- ggplot(as.data.frame(H3N2.indv.Z[,5]), aes(x=H3N2.indv.Z[, 5])) +
+panel_b <- ggplot(as.data.frame(H3N2.indv.Z[,1]), aes(x=H3N2.indv.Z[, 1])) +
   geom_histogram(closed="right", center=1, binwidth=0.5, fill=plot_colors[[2]]) +
-  labs(x="Number of secondary cases", y="Number of indices") +
+  labs(x="Number of secondary cases", y="Number") +
   scale_x_continuous(breaks=c(0, 1, 2, 3, 4, 5), limits=c(-0.5, 5)) +
   ylim(0, 8) +
   theme_light()
 
 ## plot generation interval distribution for one simulation
 
-panel_f <- ggplot(as.data.frame(H3N2.gen.times[,5]), aes(x=H3N2.gen.times[, 5])) +
+panel_f <- ggplot(as.data.frame(H3N2.gen.times[,1]), aes(x=H3N2.gen.times[, 1])) +
   geom_histogram(closed="right", center=1, binwidth=0.25, fill=plot_colors[[2]]) +
-  labs(x="Generation time (days)", y="Number of contacts") +
-  scale_x_continuous(breaks=seq(0, 12, 2)) +
+  labs(x="Generation time (days)", y="Number") +
+  scale_x_continuous(breaks=seq(0, 10, 2), limits=c(-0.5, 10)) +
   ylim(0, 8) +
   theme_light()
 
@@ -411,44 +412,14 @@ H3N2.k.vals <- data.frame(cutoff = c(0, 1, 10),
 
 # joint plots -------------------------------------------------------------
 
-## joint sample neg b distributions
-
-H1N1.trial <- as.data.frame(table(H1N1.indv.Z[,5]))
-H3N2.trial <- as.data.frame(table(H3N2.indv.Z[,5]))
-
-negb.example <- merge(H1N1.trial, H3N2.trial, by="Var1", suffixes=c("H1", "H3"), all=T)
-
-negb.example <- negb.example %>%
-  pivot_longer(cols=2:3, names_to="Subtype", names_prefix="Freq", values_to="count")
-
-common.negb <- ggplot(negb.example, aes(x=Var1, y=count, fill=Subtype, color=Subtype)) +
-  geom_bar(stat = "identity", position = "dodge") +
-  scale_fill_manual(values = c(plot_colors[[1]], plot_colors[[2]]), labels=c("H1N1", "H3N2")) +
-  scale_color_manual(values = c(plot_colors[[1]], plot_colors[[2]]), labels=c("H1N1", "H3N2")) + 
-  labs(x="Number of offspring", y="Count") +
-  theme_light()
-
-## joint sample gen time distribution
-
-H1N1.times <- c(H1N1.gen.times[,5])[!is.na(c(H1N1.gen.times[,5]))]
-
-H3N2.times <- c(H3N2.gen.times[,5])[!is.na(c(H3N2.gen.times[,5]))]
-
-gen.interval.example <- data.frame(gen.time = c(H1N1.times, H3N2.times), 
-                                   Subtype = c(rep("H1N1", length(H1N1.times)), rep("H3N2", length(H3N2.times))))
-
-common.gen.interval <- ggplot(gen.interval.example, aes(x=gen.time, fill=Subtype)) +
-  geom_histogram(position="dodge", closed="right", binwidth=0.5) +
-  scale_fill_manual(values = c(plot_colors[[1]], plot_colors[[2]]), labels=c("H1N1", "H3N2")) +
-  labs(x="Generation interval", y="Number of contacts") +
-  theme_light()
-
-## plot mu distribution
+## plot mu distribution and test significance 
 
 mu.vals <- data.frame(mu = c(c(H1N1.negb.fits[2,]), c(H3N2.negb.fits[2,])), 
                       Subtype = c(rep("H1N1", its), rep("H3N2", its)))
 H1N1.mean.mu <- mean(H1N1.negb.fits[2,])
-H3N2.mean.mu <- mean(H3N2.negb.fits[2,])
+H3N2.mean.mu <- mean(H3N2.negb.fits[2,], na.rm = T)
+
+t.test(H1N1.negb.fits[2,], H3N2.negb.fits[2,], alternative = "two.sided")
 
 panel_c <- ggplot(mu.vals, aes(x=mu, fill=Subtype, color=Subtype)) +
   geom_density(alpha=0.7) +
@@ -458,22 +429,11 @@ panel_c <- ggplot(mu.vals, aes(x=mu, fill=Subtype, color=Subtype)) +
   scale_fill_manual(values = plot_colors) +
   scale_color_manual(values = plot_colors) +
   guides(fill = guide_legend(override.aes = list(alpha=1))) +
-  labs(x=expression(paste("Basic reproduction number ", R[0])), y="Density") +
+  xlim(0, 4) +
+  labs(x="Number of secondary cases", y="Density") +
   theme_light()
 
-## plot k distribution
-
-k.vals <- rbind(H1N1.k.vals, H3N2.k.vals)
-
-panel_d <- ggplot(k.vals, aes(x=cutoff, y=num, fill=Subtype)) +
-  geom_bar(stat="identity", position="dodge") +
-  #geom_density(alpha=0.7) +
-  scale_fill_manual(values = plot_colors) +
-  scale_x_continuous(breaks=c(0, 1, 10), labels=c("< 1", "1+", "10+")) +
-  labs(x="Overdispersion parameter k", y="Number of simulations") +
-  theme_light()
-
-## k density curve
+## plot k density curve
 
 k.density <- data.frame(k = c(H1N1.negb.fits[1,], H3N2.negb.fits[1,]), 
                              Subtype = c(rep("H1N1", its), rep("H3N2", its)))
@@ -487,10 +447,10 @@ k.density.plot <- ggplot(k.density, aes(k, color=Subtype, fill=Subtype)) +
                      breaks=trans_breaks('log10', function(x) 10^x),
                      labels=trans_format('log10', math_format(10^.x))) +
   #scale_x_log10(labels=label_log(base=10, digits=1)) +
-  labs(x="Overdispersion parameter k", y="Density") +
+  labs(x="Overdispersion parameter k", y="Cumulative density") +
   theme_light()
 
-## plot gamma distribution (gen time = shape/rate)
+## plot gamma distribution (gen time = shape/rate) and significance
 
 H1N1.gens <- H1N1.gamma.fits[1,] / H1N1.gamma.fits[2,]
 H3N2.gens <- H3N2.gamma.fits[1,] / H3N2.gamma.fits[2,]
@@ -498,9 +458,16 @@ H3N2.gens <- H3N2.gamma.fits[1,] / H3N2.gamma.fits[2,]
 common.gen.times <- data.frame(gen.time = c(H1N1.gens, H3N2.gens), 
                                Subtype = c(rep("H1N1", its), rep("H3N2", its)))
 
+t.test(H1N1.gens, H3N2.gens, altnervative="two.sided")
+
+## find variance of gamma distributions
+H1N1.gen.variance <- H1N1.gamma.fits[1,] / (H1N1.gamma.fits[2,]^2)
+H3N2.gen.variance <- H3N2.gamma.fits[1,] / (H3N2.gamma.fits[2,]^2)
+
+t.test(H1N1.gen.variance, H3N2.gen.variance, altnervative="two.sided")
+
 panel_g <- ggplot(common.gen.times, aes(x=gen.time, fill=Subtype, color=Subtype)) +
   geom_density(alpha=0.7) +
-  #geom_histogram(closed="right", position="dodge", binwidth=0.5, alpha=0.7) +
   ## add lines for mean gen time
   geom_vline(xintercept=mean(H1N1.gens), color=plot_colors[[1]], linewidth=2, linetype=2) +
   ### confirm na.rm for now
@@ -512,26 +479,10 @@ panel_g <- ggplot(common.gen.times, aes(x=gen.time, fill=Subtype, color=Subtype)
   labs(x="Generation time (days)", y="Density") +
   theme_light()
 
-## separate negb and gamma panels
-test <- ggarrange(panel_a, panel_b, panel_c, k.density.plot, panel_e, panel_f, 
-          ncol=2, nrow=3, align="v", 
-          labels=c("A", "B", "C", "D", "E", "F"), 
-          legend = "none", 
-          common.legend = T)
+## all plots
 
-test2 <- ggarrange(spacer, panel_g, spacer, ncol=3, widths=c(1, 2.5, 1), labels=c("", "G", ""), legend="right")
+top <- ggarrange(panel_a, panel_b, panel_e, panel_f, ncol=4, labels=c("A", "B", "C", "D"), align="h")
 
-ggarrange(test, test2, nrow=2, common.legend=T, heights=c(2.2, 1))
+bottom <- ggarrange(panel_c, k.density.plot, panel_g, ncol=3, labels=c("E", "F", "G"), align="h", common.legend = T, legend="right")
 
-## common negb and gamma panels
-
-spacer <- ggplot() + theme_void()
-
-test <- ggarrange(panel_c, panel_d, common.gen.interval, panel_g, 
-                  ncol=2, nrow=2, 
-                  align="v", common.legend=T, legend="bottom", 
-                  labels = c("B", "C", "D", "E"))
-
-test2 <- ggarrange(spacer, common.negb, spacer, ncol=3, widths=c(1, 2, 1), labels=c("", "A", ""), legend="none")
-
-ggarrange(test2, test, nrow=2, common.legend = T, legend = "bottom", heights=c(1, 2))
+ggarrange(top, bottom, nrow=2, align="v")
