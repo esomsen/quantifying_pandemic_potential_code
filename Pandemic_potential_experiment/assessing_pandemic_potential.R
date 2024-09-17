@@ -186,7 +186,7 @@ panel_a <- ggplot(as.data.frame(H1N1.indv.Z[,5]), aes(x=H1N1.indv.Z[, 5])) +
 
 ## plot generation interval distribution for one simulation
 
-panel_e <- ggplot(as.data.frame(H1N1.gen.times[,5]), aes(x=H1N1.gen.times[, 5])) +
+panel_c <- ggplot(as.data.frame(H1N1.gen.times[,5]), aes(x=H1N1.gen.times[, 5])) +
   geom_histogram(closed="right", center=1, binwidth=0.25, fill=plot_colors[[1]]) +
   labs(x="Generation time (days)", y="Number") +
   scale_x_continuous(breaks=seq(0, 10, 2), limits=c(-0.5, 10)) +
@@ -379,7 +379,7 @@ panel_b <- ggplot(as.data.frame(H3N2.indv.Z[,1]), aes(x=H3N2.indv.Z[, 1])) +
 
 ## plot generation interval distribution for one simulation
 
-panel_f <- ggplot(as.data.frame(H3N2.gen.times[,1]), aes(x=H3N2.gen.times[, 1])) +
+panel_d <- ggplot(as.data.frame(H3N2.gen.times[,1]), aes(x=H3N2.gen.times[, 1])) +
   geom_histogram(closed="right", center=1, binwidth=0.25, fill=plot_colors[[2]]) +
   labs(x="Generation time (days)", y="Number") +
   scale_x_continuous(breaks=seq(0, 10, 2), limits=c(-0.5, 10)) +
@@ -421,7 +421,7 @@ H3N2.mean.mu <- mean(H3N2.negb.fits[2,], na.rm = T)
 
 t.test(H1N1.negb.fits[2,], H3N2.negb.fits[2,], alternative = "two.sided")
 
-panel_c <- ggplot(mu.vals, aes(x=mu, fill=Subtype, color=Subtype)) +
+panel_e <- ggplot(mu.vals, aes(x=mu, fill=Subtype, color=Subtype)) +
   geom_density(alpha=0.7) +
   ## add lines for mean mu
   geom_vline(xintercept=H1N1.mean.mu, color=plot_colors[[1]], linewidth=2, linetype=2) +
@@ -430,7 +430,7 @@ panel_c <- ggplot(mu.vals, aes(x=mu, fill=Subtype, color=Subtype)) +
   scale_color_manual(values = plot_colors) +
   guides(fill = guide_legend(override.aes = list(alpha=1))) +
   xlim(0, 4) +
-  labs(x="Number of secondary cases", y="Density") +
+  labs(x=expression(paste("Mean basic reproductive number ", R[0])), y="Density") +
   theme_light()
 
 ## plot k density curve
@@ -476,13 +476,13 @@ panel_g <- ggplot(common.gen.times, aes(x=gen.time, fill=Subtype, color=Subtype)
   scale_color_manual(values = plot_colors) +
   xlim(0, 8) +
   guides(fill = guide_legend(override.aes = list(alpha=1))) +
-  labs(x="Generation time (days)", y="Density") +
+  labs(x="Mean generation time G (days)", y="Density") +
   theme_light()
 
 ## all plots
 
-top <- ggarrange(panel_a, panel_b, panel_e, panel_f, ncol=4, labels=c("A", "B", "C", "D"), align="h")
+top <- ggarrange(panel_a, panel_b, panel_c, panel_d, ncol=4, labels=c("A", "B", "C", "D"), align="h")
 
-bottom <- ggarrange(panel_c, k.density.plot, panel_g, ncol=3, labels=c("E", "F", "G"), align="h", common.legend = T, legend="right")
+bottom <- ggarrange(panel_e, k.density.plot, panel_g, ncol=3, labels=c("E", "F", "G"), align="h", common.legend = T, legend="right")
 
 ggarrange(top, bottom, nrow=2, align="v")
