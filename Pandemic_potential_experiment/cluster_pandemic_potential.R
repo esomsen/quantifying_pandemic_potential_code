@@ -36,7 +36,7 @@ num.contacts <- 15
 ## number of trials
 its <- 1000
 
-set.seed(26)
+set.seed(25)
 
 # H1N1 analysis -----------------------------------------------------------
 
@@ -119,7 +119,6 @@ for (ferret in H1N1_recipient_names){
   H1N1_transmission_probs[[ferret]] <- data
 }
 
-
 ## record individual R0s estimates for all trials
 H1N1.indv.Z <- matrix(data=NA, ncol=its, nrow=length(H1N1_recipient_names))
 ## record negative binomial mu and k for each trial
@@ -128,9 +127,6 @@ rownames(H1N1.negb.fits) <- c("k", "mu")
 
 ## record individual gen time estimates for all trials
 H1N1.gen.times <- matrix(data=NA, ncol=its, nrow=num.contacts*10)
-## record gamma shape and rate for each trial
-H1N1.gamma.fits <- matrix(data=NA, ncol=its, nrow=3)
-rownames(H1N1.gamma.fits) <- c("shape", "rate", "mean")
 
 for (i in 1:its){
   ## record number of infected contacts for each ferret in each trial
@@ -169,16 +165,10 @@ for (i in 1:its){
     H1N1.negb.fits[,i] <- fitdist(c(num.offspring), "nbinom", method="mle")$estimate
     ## add gen times to tracker
     H1N1.gen.times[1:length(gen.time), i] <- gen.time
-    ## add generation interval to tracker
-    ## if only one contact is generated, just add that gen interval 
-    if (length(gen.time) > 1){
-      H1N1.gamma.fits[1:2,i] <- fitdist(gen.time, "gamma", method="mle")$estimate
-    } else {
-      H1N1.gamma.fits[3,i] <- gen.time
-    }
     ## if no offspring are generated, only track Z
   } else {
     H1N1.indv.Z[,i] <- 0
+    H1N1.negb.fits[2,i] <- 0
   }
 }
 
@@ -286,9 +276,6 @@ rownames(H3N2.negb.fits) <- c("k", "mu")
 
 ## record individual gen time estimates for all trials
 H3N2.gen.times <- matrix(data=NA, ncol=its, nrow=num.contacts*10)
-## record gamma shape and rate for each trial
-H3N2.gamma.fits <- matrix(data=NA, ncol=its, nrow=3)
-rownames(H3N2.gamma.fits) <- c("shape", "rate", "mean")
 
 for (i in 1:its){
   ## record number of infected contacts for each ferret in each trial
@@ -327,16 +314,10 @@ for (i in 1:its){
     H3N2.negb.fits[,i] <- fitdist(c(num.offspring), "nbinom", method="mle")$estimate
     ## add gen times to tracker
     H3N2.gen.times[1:length(gen.time), i] <- gen.time
-    ## add generation interval to tracker
-    ## if only one contact is generated, just add that gen interval 
-    if (length(gen.time) > 1){
-      H3N2.gamma.fits[1:2,i] <- fitdist(gen.time, "gamma", method="mle")$estimate
-    } else {
-      H3N2.gamma.fits[3,i] <- gen.time
-    }
   ## if no offspring are generated, only track Z
   } else {
     H3N2.indv.Z[,i] <- 0
+    H3N2.negb.fits[2,i] <- 0
   }
 }
 

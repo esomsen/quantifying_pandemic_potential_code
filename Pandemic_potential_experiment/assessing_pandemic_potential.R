@@ -41,7 +41,7 @@ its <- 1000
 
 plot_colors <- color("muted")(2)
 
-set.seed(26)
+set.seed(25)
 
 # H1N1 analysis -----------------------------------------------------------
 
@@ -132,9 +132,6 @@ rownames(H1N1.negb.fits) <- c("k", "mu")
 
 ## record individual gen time estimates for all trials
 H1N1.gen.times <- matrix(data=NA, ncol=its, nrow=num.contacts*10)
-## record gamma shape and rate for each trial
-H1N1.gamma.fits <- matrix(data=NA, ncol=its, nrow=2)
-rownames(H1N1.gamma.fits) <- c("shape", "rate")
 
 for (i in 1:its){
   ## record number of infected contacts for each ferret in each trial
@@ -173,59 +170,30 @@ for (i in 1:its){
     H1N1.negb.fits[,i] <- fitdist(c(num.offspring), "nbinom", method="mle")$estimate
     ## add gen times to tracker
     H1N1.gen.times[1:length(gen.time), i] <- gen.time
-    ## add generation interval to tracker
-    ## if only one contact is generated, just add that gen interval 
-    if (length(gen.time) > 1){
-      H1N1.gamma.fits[1:2,i] <- fitdist(gen.time, "gamma", method="mle")$estimate
-    } else {
-      H1N1.gamma.fits[3,i] <- gen.time
-    }
     ## if no offspring are generated, only track Z
   } else {
     H1N1.indv.Z[,i] <- 0
+    H1N1.negb.fits[2,i] <- 0
   }
 }
 
 ## plot offspring distribution for one simulation
 
-panel_a <- ggplot(as.data.frame(H1N1.indv.Z[,5]), aes(x=H1N1.indv.Z[, 5])) +
+panel_a <- ggplot(as.data.frame(H1N1.indv.Z[,4]), aes(x=H1N1.indv.Z[, 4])) +
   geom_histogram(closed="right", center=1, binwidth=0.5, fill=plot_colors[[1]]) +
   labs(x="Number of secondary cases", y="Number") +
-  scale_x_continuous(breaks=c(0, 1, 2, 3, 4, 5), limits=c(-0.5, 5)) +
-  ylim(0, 8) +
+  scale_x_continuous(breaks=c(0, 1, 2, 3, 4, 5), limits=c(-0.5, 5.5)) +
+  ylim(0, 7) +
   theme_light()
 
 ## plot generation interval distribution for one simulation
 
-panel_c <- ggplot(as.data.frame(H1N1.gen.times[,5]), aes(x=H1N1.gen.times[, 5])) +
+panel_c <- ggplot(as.data.frame(H1N1.gen.times[,4]), aes(x=H1N1.gen.times[, 4])) +
   geom_histogram(closed="right", center=1, binwidth=0.25, fill=plot_colors[[1]]) +
   labs(x="Generation time (days)", y="Number") +
-  scale_x_continuous(breaks=seq(0, 10, 2), limits=c(-0.5, 10)) +
-  ylim(0, 8) +
+  scale_x_continuous(breaks=seq(0, 10, 2), limits=c(-0.5, 10.5)) +
+  ylim(0, 5) +
   theme_light()
-
-## generate k distribution
-
-less.1 <- 0
-more.1 <- 0
-more.10 <- 0
-
-for (n in 1:its){
-  ## num of sims with k less than 1
-  if (H1N1.negb.fits[1,n] < 1){
-    less.1 <- less.1 +1
-  } ## num of sims 1 < k < 10 
-  else if (H1N1.negb.fits[1,n] < 10){
-    more.1 <- more.1 + 1
-  } ## num of sims k > 10
-  else if (H1N1.negb.fits[1,n] > 10){
-    more.10 <- more.10 + 1
-  } else (print("error"))
-}
-
-H1N1.k.vals <- data.frame(cutoff = c(0, 1, 10), 
-                          num = c(less.1, more.1, more.10), 
-                          Subtype = "H1N1")
 
 # H3N2 analysis -----------------------------------------------------------
 
@@ -331,9 +299,6 @@ rownames(H3N2.negb.fits) <- c("k", "mu")
 
 ## record individual gen time estimates for all trials
 H3N2.gen.times <- matrix(data=NA, ncol=its, nrow=num.contacts*10)
-## record gamma shape and rate for each trial
-H1N1.gamma.fits <- matrix(data=NA, ncol=its, nrow=3)
-rownames(H1N1.gamma.fits) <- c("shape", "rate", "mean")
 
 for (i in 1:its){
   ## record number of infected contacts for each ferret in each trial
@@ -372,60 +337,30 @@ for (i in 1:its){
     H3N2.negb.fits[,i] <- fitdist(c(num.offspring), "nbinom", method="mle")$estimate
     ## add gen times to tracker
     H3N2.gen.times[1:length(gen.time), i] <- gen.time
-    ## add generation interval to tracker
-    ## if only one contact is generated, just add that gen interval 
-    if (length(gen.time) > 1){
-      H3N2.gamma.fits[1:2,i] <- fitdist(gen.time, "gamma", method="mle")$estimate
-    } else {
-      H3N2.gamma.fits[3,i] <- gen.time
-    }
     ## if no offspring are generated, only track Z
   } else {
     H3N2.indv.Z[,i] <- 0
+    H3N2.negb.fits[2,i] <- 0
   }
 }
 
 ## plot offspring distribution for one simulation
 
-panel_b <- ggplot(as.data.frame(H3N2.indv.Z[,1]), aes(x=H3N2.indv.Z[, 1])) +
+panel_b <- ggplot(as.data.frame(H3N2.indv.Z[,5]), aes(x=H3N2.indv.Z[, 5])) +
   geom_histogram(closed="right", center=1, binwidth=0.5, fill=plot_colors[[2]]) +
   labs(x="Number of secondary cases", y="Number") +
-  scale_x_continuous(breaks=c(0, 1, 2, 3, 4, 5), limits=c(-0.5, 5)) +
-  ylim(0, 8) +
+  scale_x_continuous(breaks=c(0, 1, 2, 3, 4, 5), limits=c(-0.5, 5.5)) +
+  ylim(0, 7) +
   theme_light()
 
 ## plot generation interval distribution for one simulation
 
-panel_d <- ggplot(as.data.frame(H3N2.gen.times[,1]), aes(x=H3N2.gen.times[, 1])) +
+panel_d <- ggplot(as.data.frame(H3N2.gen.times[,5]), aes(x=H3N2.gen.times[, 5])) +
   geom_histogram(closed="right", center=1, binwidth=0.25, fill=plot_colors[[2]]) +
   labs(x="Generation time (days)", y="Number") +
-  scale_x_continuous(breaks=seq(0, 10, 2), limits=c(-0.5, 10)) +
-  ylim(0, 8) +
+  scale_x_continuous(breaks=seq(0, 10, 2), limits=c(-0.5, 10.5)) +
+  ylim(0, 5) +
   theme_light()
-
-## generate k distribution
-
-less.1 <- 0
-more.1 <- 0
-more.10 <- 0
-
-for (n in 1:its){
-  ## num of sims with k less than 1
-  if (H3N2.negb.fits[1,n] < 1){
-    less.1 <- less.1 +1
-  } ## num of sims 1 < k < 10 
-  else if (H3N2.negb.fits[1,n] < 10){
-    more.1 <- more.1 + 1
-  } ## num of sims k > 10
-  else if (H3N2.negb.fits[1,n] > 10){
-    more.10 <- more.10 + 1
-  } else (print("error"))
-}
-
-H3N2.k.vals <- data.frame(cutoff = c(0, 1, 10), 
-                          num = c(less.1, more.1, more.10), 
-                          Subtype = "H3N2")
-
 
 # joint plots -------------------------------------------------------------
 
@@ -434,7 +369,7 @@ H3N2.k.vals <- data.frame(cutoff = c(0, 1, 10),
 mu.vals <- data.frame(mu = c(c(H1N1.negb.fits[2,]), c(H3N2.negb.fits[2,])), 
                       Subtype = c(rep("H1N1", its), rep("H3N2", its)))
 H1N1.mean.mu <- mean(H1N1.negb.fits[2,])
-H3N2.mean.mu <- mean(H3N2.negb.fits[2,], na.rm = T)
+H3N2.mean.mu <- mean(H3N2.negb.fits[2,])
 
 t.test(H1N1.negb.fits[2,], H3N2.negb.fits[2,], alternative = "two.sided")
 
@@ -447,7 +382,7 @@ panel_e <- ggplot(mu.vals, aes(x=mu, fill=Subtype, color=Subtype)) +
   scale_color_manual(values = plot_colors) +
   guides(fill = guide_legend(override.aes = list(alpha=1))) +
   xlim(0, 4) +
-  labs(x=expression(paste("Mean basic reproductive number ", R[0])), y="Density") +
+  labs(x=expression(paste("Basic reproductive number ", R[0])), y="Density") +
   theme_light()
 
 ## plot k density curve
@@ -455,7 +390,7 @@ panel_e <- ggplot(mu.vals, aes(x=mu, fill=Subtype, color=Subtype)) +
 k.density <- data.frame(k = c(H1N1.negb.fits[1,], H3N2.negb.fits[1,]), 
                              Subtype = c(rep("H1N1", its), rep("H3N2", its)))
 
-k.density.plot <- ggplot(k.density, aes(k, color=Subtype, fill=Subtype)) +
+panel_f <- ggplot(k.density, aes(k, color=Subtype, fill=Subtype)) +
   stat_ecdf(geom="line") +
   stat_ecdf(aes(ymin=0,ymax=..y..),geom="ribbon", alpha=0.7) + 
   scale_color_manual(values = plot_colors) +
@@ -467,39 +402,32 @@ k.density.plot <- ggplot(k.density, aes(k, color=Subtype, fill=Subtype)) +
   labs(x="Overdispersion parameter k", y="Cumulative density") +
   theme_light()
 
-## plot gamma distribution (gen time = shape/rate) and significance
+## plot generation intervals and test significance
 
-H1N1.gens <- H1N1.gamma.fits[1,] / H1N1.gamma.fits[2,]
-H3N2.gens <- H3N2.gamma.fits[1,] / H3N2.gamma.fits[2,]
+H1N1.Tc <- c(H1N1.gen.times)[!is.na(c(H1N1.gen.times))]
+H3N2.Tc <- c(H3N2.gen.times)[!is.na(c(H3N2.gen.times))]
+Tc.values <- data.frame(Tc = c(H1N1.Tc, H3N2.Tc), 
+                        Subtype = c(rep("H1N1", length(H1N1.Tc)), rep("H3N2", length(H3N2.Tc))))
 
-common.gen.times <- data.frame(gen.time = c(H1N1.gens, H3N2.gens), 
-                               Subtype = c(rep("H1N1", its), rep("H3N2", its)))
+t.test(H1N1.Tc, H3N2.Tc, altnervative="two.sided")
 
-t.test(H1N1.gens, H3N2.gens, altnervative="two.sided")
-
-## find variance of gamma distributions
-H1N1.gen.variance <- H1N1.gamma.fits[1,] / (H1N1.gamma.fits[2,]^2)
-H3N2.gen.variance <- H3N2.gamma.fits[1,] / (H3N2.gamma.fits[2,]^2)
-
-t.test(H1N1.gen.variance, H3N2.gen.variance, altnervative="two.sided")
-
-panel_g <- ggplot(common.gen.times, aes(x=gen.time, fill=Subtype, color=Subtype)) +
+panel_g <- ggplot(Tc.values, aes(x=Tc, fill=Subtype, color=Subtype)) +
+  #geom_histogram() +
   geom_density(alpha=0.7) +
   ## add lines for mean gen time
-  geom_vline(xintercept=mean(H1N1.gens), color=plot_colors[[1]], linewidth=2, linetype=2) +
-  ### confirm na.rm for now
-  geom_vline(xintercept=mean(H3N2.gens, na.rm=T), color=plot_colors[[2]], linewidth=2, linetype=2) +
+  geom_vline(xintercept=mean(H1N1.Tc), color=plot_colors[[1]], linewidth=2, linetype=2) +
+  geom_vline(xintercept=mean(H3N2.Tc), color=plot_colors[[2]], linewidth=2, linetype=2) +
   scale_fill_manual(values = plot_colors) +
   scale_color_manual(values = plot_colors) +
-  xlim(0, 8) +
+  scale_x_continuous(breaks = seq(0, 12, 2), limits=c(0, 12)) +
   guides(fill = guide_legend(override.aes = list(alpha=1))) +
-  labs(x="Mean generation time G (days)", y="Density") +
+  labs(x=expression(paste("Mean generation time ", T[c], " (days)")), y="Density") + 
   theme_light()
 
 ## all plots
 
 top <- ggarrange(panel_a, panel_b, panel_c, panel_d, ncol=4, labels=c("A", "B", "C", "D"), align="h")
 
-bottom <- ggarrange(panel_e, k.density.plot, panel_g, ncol=3, labels=c("E", "F", "G"), align="h", common.legend = T, legend="right")
+bottom <- ggarrange(panel_e, panel_f, panel_g, ncol=3, labels=c("E", "F", "G"), align="h", common.legend = T, legend="right")
 
 ggarrange(top, bottom, nrow=2, align="v")
