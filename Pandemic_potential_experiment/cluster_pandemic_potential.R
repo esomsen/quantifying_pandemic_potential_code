@@ -30,8 +30,8 @@ MLE_H3N2 <- 0.044
 ## define "contact" as one hour of exposure
 exposure.length <- 1/24
 
-## number of contacts (15 = rounded average for 5-9yo/day from Mossong et al.)
-num.contacts <- 165
+## number of contacts per day (15 = rounded average for 5-9yo/day from Mossong et al.)
+num.contacts <- 15
 
 ## number of trials
 its <- 1000
@@ -127,10 +127,10 @@ H1N1.negb.fits <- matrix(data=NA, ncol=its, nrow=2)
 rownames(H1N1.negb.fits) <- c("k", "mu")
 
 ## record individual gen time estimates for all trials
-H1N1.gen.times <- matrix(data=NA, ncol=its, nrow=num.contacts)
+H1N1.gen.times <- matrix(data=NA, ncol=its, nrow=num.contacts*10)
 ## record gamma shape and rate for each trial
-H1N1.gamma.fits <- matrix(data=NA, ncol=its, nrow=2)
-rownames(H1N1.gamma.fits) <- c("shape", "rate")
+H1N1.gamma.fits <- matrix(data=NA, ncol=its, nrow=3)
+rownames(H1N1.gamma.fits) <- c("shape", "rate", "mean")
 
 for (i in 1:its){
   ## record number of infected contacts for each ferret in each trial
@@ -138,15 +138,15 @@ for (i in 1:its){
   gen.time <- c()
   for (ferret in H1N1_recipient_names){
     data <- H1N1_transmission_probs[[ferret]]
-    ## draw random times for the contacts to occur between 1-11dpe
-    contact.times <- round(x=runif(num.contacts, min=1, max=11), digits=3)
+    ## draw random times for the contacts to occur each day, and round to match
+    contact.times <- round(x=runif(num.contacts*10, min=seq(1, 10), max=seq(2, 11)), digits=3)
     ## this keeps duplicate times
     pr_transmission <- c()
     for (t in contact.times){
       pr_transmission <- append(pr_transmission, data[[which(near(data$dpe, t)),"prob_transmission"]])
     }
     ## draw a random number between 0-1; if transmission prob is higher than this number, contact is infected
-    random.draws <- runif(num.contacts)
+    random.draws <- runif(num.contacts*10)
     ## count number of infected contacts and record
     infected.contacts <- sum(pr_transmission > random.draws)
     num.offspring <- append(num.offspring, infected.contacts)
@@ -161,14 +161,25 @@ for (i in 1:its){
     gen.interval <- contact.times[which(pr_transmission > random.draws)] - time.initial
     gen.time <- append(gen.time, gen.interval)
   }
-  ## add offspring distribution to tracker
-  H1N1.indv.Z[,i] <- num.offspring
-  ## add neg B params to tracker
-  H1N1.negb.fits[,i] <- fitdist(c(num.offspring), "nbinom", method="mle")$estimate
-  ## add gen times to tracker
-  H1N1.gen.times[1:length(gen.time), i] <- gen.time
-  ## add generation interval to tracker
-  H1N1.gamma.fits[,i] <- fitdist(gen.time, "gamma", method="mle")$estimate
+  ## if offspring are generated, fit a distribution and add to tracker
+  if (sum(num.offspring > 0)) {
+    ## add offspring distribution to tracker
+    H1N1.indv.Z[,i] <- num.offspring
+    ## add neg B params to tracker
+    H1N1.negb.fits[,i] <- fitdist(c(num.offspring), "nbinom", method="mle")$estimate
+    ## add gen times to tracker
+    H1N1.gen.times[1:length(gen.time), i] <- gen.time
+    ## add generation interval to tracker
+    ## if only one contact is generated, just add that gen interval 
+    if (length(gen.time) > 1){
+      H1N1.gamma.fits[1:2,i] <- fitdist(gen.time, "gamma", method="mle")$estimate
+    } else {
+      H1N1.gamma.fits[3,i] <- gen.time
+    }
+    ## if no offspring are generated, only track Z
+  } else {
+    H1N1.indv.Z[,i] <- 0
+  }
 }
 
 # H3N2 analysis -----------------------------------------------------------
@@ -274,13 +285,10 @@ H3N2.negb.fits <- matrix(data=NA, ncol=its, nrow=2)
 rownames(H3N2.negb.fits) <- c("k", "mu")
 
 ## record individual gen time estimates for all trials
-H3N2.gen.times <- matrix(data=NA, ncol=its, nrow=num.contacts)
+H3N2.gen.times <- matrix(data=NA, ncol=its, nrow=num.contacts*10)
 ## record gamma shape and rate for each trial
-H3N2.gamma.fits <- matrix(data=NA, ncol=its, nrow=2)
-rownames(H3N2.gamma.fits) <- c("shape", "rate")
-
-## track number of trials with no offspring
-n.no.transmission <- 0
+H3N2.gamma.fits <- matrix(data=NA, ncol=its, nrow=3)
+rownames(H3N2.gamma.fits) <- c("shape", "rate", "mean")
 
 for (i in 1:its){
   ## record number of infected contacts for each ferret in each trial
@@ -288,15 +296,15 @@ for (i in 1:its){
   gen.time <- c()
   for (ferret in H3N2_recipient_names){
     data <- H3N2_transmission_probs[[ferret]]
-    ## draw random times for the contacts to occur between 1-11dpe
-    contact.times <- round(x=runif(num.contacts, min=1, max=11), digits=3)
+    ## draw random times for the contacts to occur each day, and round to match
+    contact.times <- round(x=runif(num.contacts*10, min=seq(1, 10), max=seq(2, 11)), digits=3)
     ## this keeps duplicate times
     pr_transmission <- c()
     for (t in contact.times){
       pr_transmission <- append(pr_transmission, data[[which(near(data$dpe, t)),"prob_transmission"]])
     }
     ## draw a random number between 0-1; if transmission prob is higher than this number, contact is infected
-    random.draws <- runif(num.contacts)
+    random.draws <- runif(num.contacts*10)
     ## count number of infected contacts and record
     infected.contacts <- sum(pr_transmission > random.draws)
     num.offspring <- append(num.offspring, infected.contacts)
@@ -311,7 +319,7 @@ for (i in 1:its){
     gen.interval <- contact.times[which(pr_transmission > random.draws)] - time.initial
     gen.time <- append(gen.time, gen.interval)
   }
-  ## if no offspring are generated, don't fit a distribution and add to tracker
+  ## if offspring are generated, fit a distribution and add to tracker
   if (sum(num.offspring > 0)) {
     ## add offspring distribution to tracker
     H3N2.indv.Z[,i] <- num.offspring
@@ -322,12 +330,13 @@ for (i in 1:its){
     ## add generation interval to tracker
     ## if only one contact is generated, just add that gen interval 
     if (length(gen.time) > 1){
-      H3N2.gamma.fits[,i] <- fitdist(gen.time, "gamma", method="mle")$estimate
+      H3N2.gamma.fits[1:2,i] <- fitdist(gen.time, "gamma", method="mle")$estimate
     } else {
-      H3N2.gamma.fits[1,i] <- gen.time
+      H3N2.gamma.fits[3,i] <- gen.time
     }
+  ## if no offspring are generated, only track Z
   } else {
-    n.no.transmission <- n.no.transmission + 1
+    H3N2.indv.Z[,i] <- 0
   }
 }
 
