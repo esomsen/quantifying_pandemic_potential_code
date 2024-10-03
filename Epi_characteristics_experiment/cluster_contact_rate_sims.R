@@ -30,8 +30,8 @@ MLE_H3N2 <- 0.044
 ## define "contact" as one hour of exposure
 exposure.length <- 1/24
 
-## number of contacts to consider
-contact.nums <- seq(100, 500, 10)
+## number of contacts per day
+contact.nums <- seq(5, 25, 1)
 
 ## number of trials
 its <- 1000
@@ -92,6 +92,7 @@ for (ferret in H1N1_recipient_names){
       mutate(dpe = as.numeric(dpe))
   }
   H1N1_transmission_probs[[ferret]] <- combo
+  rm(list=ls(pattern="df_"))
 }
 
 ## calculate probability of onwards transmission given duration of contact
@@ -117,23 +118,21 @@ for (ferret in H1N1_recipient_names){
 
 print("H1N1 transmission probs done")
 
-## calculate R0, k, G across a range of contact rates
+## calculate R0, k, Tc across a range of contact rates
 ## for a given contact rate, perform 1000 simulations of 2* infections from contacts
-## for each simulation trial, retain average R0, average G (k?, maybe assume inf?)
 
-## track mean R0 for each contact rate
-H1N1.R0s <- c()
-## track mean G for each contact rate
-H1N1.Gs <- c()
+## track R0 for each contact rate
+H1N1.R0s <- matrix(data=NA, nrow=3, ncol=length(contact.nums), dimnames=list(c("mean", "lower", "upper"), c(contact.nums)))
+## track k for each contact rate
+H1N1.ks <- c()
+## track mean Tc for each contact rate
+H1N1.Tcs <- c()
 
-for (c in contact.nums){
-  num.contacts <- c
+for (c in 1:length(contact.nums)){
+  num.contacts <- contact.nums[c]
   ## record negative binomial mu and k for each trial
   H1N1.negb.fits <- matrix(data=NA, ncol=its, nrow=2)
   rownames(H1N1.negb.fits) <- c("k", "mu")
-  ## record gamma shape and rate for each trial
-  H1N1.gamma.fits <- matrix(data=NA, ncol=its, nrow=2)
-  rownames(H1N1.gamma.fits) <- c("shape", "rate")
   for (i in 1:its){
     ## record number of infected contacts for each ferret in each trial
     num.offspring <- c()
@@ -141,14 +140,14 @@ for (c in contact.nums){
     for (ferret in H1N1_recipient_names){
       data <- H1N1_transmission_probs[[ferret]]
       ## draw random times for the contacts to occur between 1-11dpe
-      contact.times <- round(x=runif(num.contacts, min=1, max=11), digits=3)
+      contact.times <- round(x=runif(num.contacts*10, min=seq(1, 10), max=seq(2, 11)), digits=3)
       ## this keeps duplicate times
       pr_transmission <- c()
       for (t in contact.times){
         pr_transmission <- append(pr_transmission, data[[which(near(data$dpe, t)),"prob_transmission"]])
       }
       ## draw a random number between 0-1; if transmission prob is higher than this number, contact is infected
-      random.draws <- runif(num.contacts)
+      random.draws <- runif(num.contacts*10)
       ## count number of infected contacts and record
       infected.contacts <- sum(pr_transmission > random.draws)
       num.offspring <- append(num.offspring, infected.contacts)
@@ -163,28 +162,21 @@ for (c in contact.nums){
       gen.interval <- contact.times[which(pr_transmission > random.draws)] - time.initial
       gen.time <- append(gen.time, gen.interval)
     }
-    ## if no offspring are generated, don't fit a distribution and add to tracker
+    ## if offspring are generated, fit a negative binomial
     if (sum(num.offspring > 0)) {
       ## add neg B params to tracker
       H1N1.negb.fits[,i] <- fitdist(c(num.offspring), "nbinom", method="mle")$estimate
-      ## add generation interval to tracker
-      ## if only one contact is generated, just add that gen interval 
-      if (length(gen.time) > 1){
-        H1N1.gamma.fits[,i] <- fitdist(gen.time, "gamma", method="mle")$estimate
-      } else {
-        H1N1.gamma.fits[1,i] <- gen.time
-      }
-    }
+    } else {## if no offspring are generated, set R0 to 0
+      H1N1.negb.fits[2,i] <- 0}
   }
-  ## record mean R0, G for this contact rate
-  H1N1.R0s <- append(H1N1.R0s, mean(H1N1.negb.fits[2,]))
-  ## do I take mean(shape) / mean(rate) or mean(shape/rate)?
-  H1N1.Gs <- append(H1N1.Gs, mean(H1N1.gamma.fits[1,] / H1N1.gamma.fits[2,]))
+  ## record R0 and 95% CI for this contact rate
+  H1N1.R0s[, c] <- MeanCI(H1N1.negb.fits[2,], method="classic")
+  ## record k for this contact rate
+  H1N1.ks <- append(H1N1.ks, mean(H1N1.negb.fits[1,], na.rm=T))
+  ## record Tc for this contact rate
+  H1N1.Tcs <- append(H1N1.Tcs, mean(gen.time))
   print(paste("H1N1 round", c))
 }
-
-save.image(file="H1N1_contact_rate_sims.RData")
-
 
 # H3N2 analysis --------------------------------------------------------------------
 
@@ -257,6 +249,7 @@ for (ferret in H3N2_recipient_names){
       mutate(dpe = as.numeric(dpe))
   }
   H3N2_transmission_probs[[ferret]] <- combo
+  rm(list=ls(pattern="df_"))
 }
 
 ## calculate probability of onwards transmission
@@ -283,23 +276,19 @@ print("H3N2 transmission probs done")
 
 ## calculate R0, k, G across a range of contact rates
 ## for a given contact rate, perform 1000 simulations of 2* infections from contacts
-## for each simulation trial, retain average R0, average G (k?, maybe assume inf?)
 
-contact.nums <- seq(100, 500, 10)
+## track R0 for each contact rate
+H3N2.R0s <- matrix(data=NA, nrow=3, ncol=length(contact.nums), dimnames=list(c("mean", "lower", "upper"), c(contact.nums)))
+## track k for each contact rate
+H3N2.ks <- c()
+## track mean Tc for each contact rate
+H3N2.Tcs <- c()
 
-## track mean R0 for each contact rate
-H3N2.R0s <- c()
-## track mean G for each contact rate
-H3N2.Gs <- c()
-
-for (c in contact.nums){
-  num.contacts <- c
+for (c in 1:length(contact.nums)){
+  num.contacts <- contact.nums[c]
   ## record negative binomial mu and k for each trial
   H3N2.negb.fits <- matrix(data=NA, ncol=its, nrow=2)
   rownames(H3N2.negb.fits) <- c("k", "mu")
-  ## record gamma shape and rate for each trial
-  H3N2.gamma.fits <- matrix(data=NA, ncol=its, nrow=2)
-  rownames(H3N2.gamma.fits) <- c("shape", "rate")
   for (i in 1:its){
     ## record number of infected contacts for each ferret in each trial
     num.offspring <- c()
@@ -307,46 +296,42 @@ for (c in contact.nums){
     for (ferret in H3N2_recipient_names){
       data <- H3N2_transmission_probs[[ferret]]
       ## draw random times for the contacts to occur between 1-11dpe
-      contact.times <- round(x=runif(num.contacts, min=1, max=11), digits=3)
+      contact.times <- round(x=runif(num.contacts*10, min=seq(1, 10), max=seq(2, 11)), digits=3)
       ## this keeps duplicate times
       pr_transmission <- c()
       for (t in contact.times){
-          pr_transmission <- append(pr_transmission, data[[which(near(data$dpe, t)),"prob_transmission"]])
-        }
-        ## draw a random number between 0-1; if transmission prob is higher than this number, contact is infected
-        random.draws <- runif(num.contacts)
-        ## count number of infected contacts and record
-        infected.contacts <- sum(pr_transmission > random.draws)
-        num.offspring <- append(num.offspring, infected.contacts)
-        ## the generation interval is the time of successful infection - time infection begins in donor
-        ## if the first test is > LOD, assume that the infection begins at 0dpe
-        if (data[[1,"nw_titer"]] > LOD){
-          time.initial <- 0
-        } else { ## if first test is negative, find the last time titer is at LOD
-          time.initial <- data[[which.max(data$nw_titer > LOD)-1,"dpe"]] 
-        }
-        ## for all timepoints at which contacts were infected, calculate the generation interval
-        gen.interval <- contact.times[which(pr_transmission > random.draws)] - time.initial
-        gen.time <- append(gen.time, gen.interval)
+        pr_transmission <- append(pr_transmission, data[[which(near(data$dpe, t)),"prob_transmission"]])
       }
-      ## if no offspring are generated, don't fit a distribution and add to tracker
-      if (sum(num.offspring > 0)) {
-        ## add neg B params to tracker
-        H3N2.negb.fits[,i] <- fitdist(c(num.offspring), "nbinom", method="mle")$estimate
-        ## add generation interval to tracker
-        ## if only one contact is generated, just add that gen interval 
-        if (length(gen.time) > 1){
-          H3N2.gamma.fits[,i] <- fitdist(gen.time, "gamma", method="mle")$estimate
-        } else {
-          H3N2.gamma.fits[1,i] <- gen.time
-        }
+      ## draw a random number between 0-1; if transmission prob is higher than this number, contact is infected
+      random.draws <- runif(num.contacts*10)
+      ## count number of infected contacts and record
+      infected.contacts <- sum(pr_transmission > random.draws)
+      num.offspring <- append(num.offspring, infected.contacts)
+      ## the generation interval is the time of successful infection - time infection begins in donor
+      ## if the first test is > LOD, assume that the infection begins at 0dpe
+      if (data[[1,"nw_titer"]] > LOD){
+        time.initial <- 0
+      } else { ## if first test is negative, find the last time titer is at LOD
+        time.initial <- data[[which.max(data$nw_titer > LOD)-1,"dpe"]] 
       }
+      ## for all timepoints at which contacts were infected, calculate the generation interval
+      gen.interval <- contact.times[which(pr_transmission > random.draws)] - time.initial
+      gen.time <- append(gen.time, gen.interval)
+    }
+    ## if offspring are generated, fit a negative binomial
+    if (sum(num.offspring > 0)) {
+      ## add neg B params to tracker
+      H3N2.negb.fits[,i] <- fitdist(c(num.offspring), "nbinom", method="mle")$estimate
+    } else {## if no offspring are generated, set R0 to 0
+      H3N2.negb.fits[2,i] <- 0}
   }
-  ## record mean R0, G for this contact rate
-  H3N2.R0s <- append(H3N2.R0s, mean(H3N2.negb.fits[2,]))
-  ## do I take mean(shape) / mean(rate) or mean(shape/rate)?
-  H3N2.Gs <- append(H3N2.Gs, mean(H3N2.gamma.fits[1,] / H3N2.gamma.fits[2,]))
+  ## record R0 and 95% CI for this contact rate
+  H3N2.R0s[, c] <- MeanCI(H3N2.negb.fits[2,], method="classic")
+  ## record k for this contact rate
+  H3N2.ks <- append(H3N2.ks, mean(H3N2.negb.fits[1,], na.rm=T))
+  ## record Tc for this contact rate
+  H3N2.Tcs <- append(H3N2.Tcs, mean(gen.time))
   print(paste("H3N2 round", c))
 }
 
-save.image(file="H3N2_contact_rate_sims.RData")
+save.image(file="contact_rate_sims.RData")
