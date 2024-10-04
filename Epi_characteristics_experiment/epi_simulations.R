@@ -7,16 +7,30 @@ plot_colors <- color("muted")(2)
 # contact rate range ------------------------------------------------------
 
 mean.R0s <- data.frame(contact.nums = contact.nums, 
-                       H1N1 = H1N1.R0s, 
-                       H3N2 = H3N2.R0s)
+                       H1N1 = H1N1.R0s[1,], 
+                       H3N2 = H3N2.R0s[1,])
 mean.R0s <- mean.R0s %>%
   pivot_longer(cols=2:3, names_to = "Subtype", values_to = "R0")
 
-panel_a <- ggplot(mean.R0s, aes(x=contact.nums, y=R0, color=Subtype, fill=Subtype)) +
-  geom_col(position = "dodge") +
+H1N1.CIs <- data.frame(contact.nums = contact.nums,
+                  lower = H1N1.R0s[2,], 
+                  upper = H1N1.R0s[3,], 
+                  Subtype = "H1N1")
+H3N2.CIs <- data.frame(contact.nums = contact.nums,
+                       lower = H3N2.R0s[2,], 
+                       upper = H3N2.R0s[3,], 
+                       Subtype = "H3N2")
+
+R0.CIs <- rbind(H1N1.CIs, H3N2.CIs) %>%
+  merge(mean.R0s)
+
+panel_a <- ggplot(R0.CIs, aes(x=contact.nums, y=R0, color=Subtype, fill=Subtype)) +
+  geom_col(position = position_dodge(width=0.9), alpha=0.7) +
+  geom_errorbar(aes(ymin=lower, ymax=upper), position=position_dodge(width=0.9), color="black") +
   scale_color_manual(values = c(plot_colors[[1]], plot_colors[[2]])) + 
   scale_fill_manual(values = c(plot_colors[[1]], plot_colors[[2]])) +
   guides(color="none", fill="none") +
+  scale_y_continuous(limits=c(0, 4), breaks=seq(0, 4, 1)) +
   labs(x="Number of contacts per day", y=expression(R[0])) +
   theme_light()
 
@@ -29,20 +43,13 @@ find.prob.extinction <- function(R0, k){
   return(prob)
 }
 
-## assume very large k for now??
-k <- 1000
-
 ## calculate prob of extinction for each subtype at each contact rate
 H1N1.extinction.probs <- c()
 H3N2.extinction.probs <- c()
 
 for (c in 1:length(contact.nums)){
-  H1.R <- H1N1.R0s[c]
-  H1.k <- H1N1.ks[c]
-  H1N1.extinction.probs <- append(H1N1.extinction.probs, find.prob.extinction(H1.R, H1.k))
-  H3.R <- H3N2.R0s[c]
-  H3.k <- H3N2.ks[c]
-  H3N2.extinction.probs <- append(H3N2.extinction.probs, find.prob.extinction(H3.R, H3.k))
+  H1N1.extinction.probs[c] <- find.prob.extinction(H1N1.R0s[1,c], H1N1.ks[c])
+  H3N2.extinction.probs[c] <- find.prob.extinction(H3N2.R0s[1,c], H3N2.ks[c])
 }
 
 extinction.probs <- data.frame(contact.nums = contact.nums,
@@ -59,122 +66,86 @@ panel_b <- ggplot(extinction.probs, aes(x=contact.nums, y=1-prob.extinction, col
   labs(x="Number of contacts", y="Probability of etablishment") +
   theme_light()
 
+# stuttering chains -------------------------------------------------------
+
+find.chain.length <- function(R0, k){
+  if (R0 < 1){
+    mu <- 1 / (1 - R0)
+    cov <- sqrt((R0*(1 + (R0/k)))/(1 - R0))
+    return(c(mu, cov))
+  }
+}
+
+## calculate size of stuttering chain at all contact rates where R0 < 1
+H1N1.chain.length <- matrix(data=NA, nrow=2, ncol=length(contact.nums), dimnames=list(c("mu", "cov"), c(contact.nums)))
+for (c in 1:length(contact.nums)){
+  if (H1N1.R0s[1,c] < 1){
+    H1N1.chain.length[,c] <- find.chain.length(H1N1.R0s[1,c], H1N1.ks[c])
+  }
+}
+
+H3N2.chain.length <- matrix(data=NA, nrow=2, ncol=length(contact.nums), dimnames=list(c("mu", "cov"), c(contact.nums)))
+for (c in 1:length(contact.nums)){
+  if (H3N2.R0s[1,c] < 1){
+    H3N2.chain.length[,c] <- find.chain.length(H3N2.R0s[1,c], H3N2.ks[c])
+  }
+}
+
+## test if chain length increases with contact rate
+
+summary(lm(c(H1N1.chain.length[1,]) ~ c(as.numeric(colnames(H1N1.chain.length)))))
+
+summary(lm(c(H3N2.chain.length[1,]) ~ c(as.numeric(colnames(H3N2.chain.length)))))
+
+chain.lengths <- data.frame(contact.nums = c(c(colnames(H1N1.chain.length[, !colSums(is.na(H1N1.chain.length))])), 
+                                             c(colnames(H3N2.chain.length[, !colSums(is.na(H3N2.chain.length))]))),
+                            Subtype = c(rep("H1N1", length(H1N1.chain.length[1, !colSums(is.na(H1N1.chain.length))])),
+                                        rep("H3N2", length(H3N2.chain.length[1, !colSums(is.na(H3N2.chain.length))]))), 
+                            mu = c(H1N1.chain.length[1, !colSums(is.na(H1N1.chain.length))], 
+                                   H3N2.chain.length[1, !colSums(is.na(H3N2.chain.length))]), 
+                            cov = c(H1N1.chain.length[2, !colSums(is.na(H1N1.chain.length))], 
+                                    H3N2.chain.length[2, !colSums(is.na(H3N2.chain.length))]))
+
+panel_c <- ggplot(chain.lengths, aes(x=as.numeric(contact.nums), y=mu, color=Subtype, fill=Subtype)) +
+  geom_col(position = position_dodge(width=0.9)) +
+  scale_color_manual(values = c(plot_colors[[1]], plot_colors[[2]])) + 
+  scale_fill_manual(values = c(plot_colors[[1]], plot_colors[[2]])) +
+  guides(color="none", fill="none") +
+  scale_y_continuous(breaks=seq(0, 15, 3), limits=c(0, 15)) +
+  labs(x="Number of contacts per day", y="Average length of stuttering chain") +
+  theme_light()
+
 # intrinsic growth rate ---------------------------------------------------
 
-find.growth.rate.exp <- function(R, G){
-  exponential.r <- (R-1) / G
+find.growth.rate.exp <- function(R, Tc){
+  exponential.r <- (R-1) / Tc
   return(exponential.r)
 }
 
-find.growth.rate.delta <- function(R, G){
-  delta.r <- log(R) / G
+find.growth.rate.delta <- function(R, Tc){
+  delta.r <- log(R) / Tc
   return(delta.r)
 }
 
-H1N1.growth.rates <- data.frame(Subtype = rep("H1N1", length(H1N1.R0s)), 
-                                exponential.r = find.growth.rate.exp(H1N1.R0s, H1N1.Tcs), 
-                                delta.r = find.growth.rate.delta(H1N1.R0s, H1N1.Tcs), 
+H1N1.growth.rates <- data.frame(Subtype = rep("H1N1", length(H1N1.R0s[1,])), 
+                                exponential.r = find.growth.rate.exp(H1N1.R0s[1,], H1N1.Tcs), 
+                                delta.r = find.growth.rate.delta(H1N1.R0s[1,], H1N1.Tcs), 
                                 contact.rate = contact.nums)
-H3N2.growth.rates <- data.frame(Subtype = rep("H3N2", length(H3N2.R0s)), 
-                                exponential.r = find.growth.rate.exp(H3N2.R0s, H3N2.Tcs), 
-                                delta.r = find.growth.rate.delta(H3N2.R0s, H3N2.Tcs), 
+H3N2.growth.rates <- data.frame(Subtype = rep("H3N2", length(H3N2.R0s[1,])), 
+                                exponential.r = find.growth.rate.exp(H3N2.R0s[1,], H3N2.Tcs), 
+                                delta.r = find.growth.rate.delta(H3N2.R0s[1,], H3N2.Tcs), 
                                 contact.rate = contact.nums)
 
 combined.growth.rates <- rbind(H1N1.growth.rates, H3N2.growth.rates)
 
-panel_c <- ggplot(combined.growth.rates, aes(x=contact.rate, y=exponential.r, group=Subtype, color=Subtype)) +
+panel_d <- ggplot(combined.growth.rates, aes(x=contact.rate, y=exponential.r, group=Subtype, color=Subtype)) +
   geom_linerange(aes(ymin=delta.r, ymax=exponential.r), linewidth=2) +
   scale_color_manual(values = c(plot_colors[[1]], plot_colors[[2]])) + 
   labs(x="Number of contacts", y="Intrinsic growth rate") +
   theme_light()
 
-# stuttering chains -------------------------------------------------------
+# plot -------------------------------------------------------------------
 
-chain.length <- function(R0, k){
-  if (R0 > 1){
-    print("R0 is greater than 1")
-  } else {
-    mu <- 1 / (1 - R0)
-    cov <- sqrt((R0*(1 + (R0/k)))/(1 - R0))
-    return(c("mu" = mu, "cov" = cov))
-  }
-}
-
-find.chain.length <- function(R0, k, j){
-  prob.chain.size
-}
-
-length.chains <- data.frame(Subtype = "H3N2", 
-                            length = chain.length(H3N2.R0, H3N2.k)[[1]], 
-                            cov = chain.length(H3N2.R0, H3N2.k)[[2]])
-
-# plots -------------------------------------------------------------------
-
-ggplot(length.chains, aes(x=Subtype, y=length)) +
-  geom_point(size=4, color=plot_colors[[2]]) +
-  geom_segment(aes(x=Subtype, xend=Subtype, y=0, yend=length), linewidth = 1.5, color=plot_colors[[2]]) +
-  labs(x="Subtype", y="Average length of stuttering chain") +
-  theme_light()
-
-
-ggarrange(panel_a, panel_b, panel_c, nrow=2, ncol=2)
-
-# branching process simulations ---------------------------------------------------------
-
-n.simulations <- 100
-generations <- 25
-
-H1N1_simulations <- matrix(0, nrow=generations, ncol=n.simulations)
-H1N1.extinct <- 0
-
-## using neg binomial distribution
-for (n in 1:n.simulations){
-  pop_size <- c(1) # start with one person
-  for (gen in 2:generations){
-    Znplus1 <- rnbinom(tail(pop_size, n=1), size=H1N1_k, mu=H1N1_mean_R0)
-    pop_size <- append(pop_size, sum(Znplus1)) ## add the sum of the draws for total size
-  }
-  if (tail(pop_size, n=1) == 0){
-    H1N1.extinct <- H1N1.extinct + 1
-  }
-  H1N1_simulations[1:length(pop_size), n] <- pop_size
-}
-
-H1N1_plot_sims <- as.data.frame(H1N1_simulations) %>%
-  mutate(time = 1:generations)
-H1N1_plot_sims <- H1N1_plot_sims %>%
-  pivot_longer(cols=1:n.simulations, names_to="simulation", values_to="pop_size")
-
-ggplot(H1N1_plot_sims, aes(x=time, y=pop_size, color=simulation)) +
-  geom_line() +
-  guides(colour = "none") + 
-  theme_light() +
-  ggtitle(paste("simulations for nbinom, mean=", H1N1_mean_R0, "shape=", H1N1_k))
-
-
-H3N2_simulations <- matrix(0, nrow=generations, ncol=n.simulations)
-H3N2.extinct <- 0
-
-## using neg binomial distribution
-for (n in 1:n.simulations){
-  pop_size <- c(1) # start with one person
-  for (gen in 2:generations){
-    Znplus1 <- rnbinom(tail(pop_size, n=1), size=H3N2_k, mu=H3N2_mean_R0)
-    pop_size <- append(pop_size, sum(Znplus1)) ## add the sum of the draws for total size
-  }
-  if (tail(pop_size, n=1) == 0){
-    H3N2.extinct <- H3N2.extinct + 1
-  }
-  H3N2_simulations[1:length(pop_size), n] <- pop_size
-}
-
-H3N2_plot_sims <- as.data.frame(H3N2_simulations) %>%
-  mutate(time = 1:generations)
-H3N2_plot_sims <- H3N2_plot_sims %>%
-  pivot_longer(cols=1:n.simulations, names_to="simulation", values_to="pop_size")
-
-ggplot(H3N2_plot_sims, aes(x=time, y=pop_size, color=simulation)) +
-  geom_line() +
-  guides(colour = "none") + 
-  theme_light() +
-  ggtitle(paste("simulations for nbinom, mean=", H3N2_mean_R0, "shape=", H3N2_k))
+ggarrange(panel_a, panel_b, panel_c, panel_d, nrow=2, ncol=2, 
+          align = "v", common.legend = T, legend = "bottom", 
+          labels=c("A", "B", "C", "D"))
