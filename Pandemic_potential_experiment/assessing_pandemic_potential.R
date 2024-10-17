@@ -390,15 +390,10 @@ panel_e <- ggplot(mu.vals, aes(x=mu, fill=Subtype, color=Subtype)) +
 k.density <- data.frame(k = c(H1N1.negb.fits[1,], H3N2.negb.fits[1,]), 
                              Subtype = c(rep("H1N1", its), rep("H3N2", its)))
 
-panel_f <- ggplot(k.density, aes(k, color=Subtype, fill=Subtype)) +
-  stat_ecdf(geom="line") +
-  stat_ecdf(aes(ymin=0,ymax=..y..),geom="ribbon", alpha=0.7) + 
+panel_f <- ggplot(k.density, aes(k, color=Subtype)) +
+  stat_ecdf(geom="line", linewidth=2) +
   scale_color_manual(values = plot_colors) +
-  scale_fill_manual(values = plot_colors) +
-  scale_x_continuous(trans='log10',
-                     breaks=trans_breaks('log10', function(x) 10^x),
-                     labels=trans_format('log10', math_format(10^.x))) +
-  #scale_x_log10(labels=label_log(base=10, digits=1)) +
+  scale_x_continuous(limits=c(0, 2), breaks=c(0, 1, 2)) +
   labs(x="Overdispersion parameter k", y="Cumulative density") +
   theme_light()
 
@@ -411,16 +406,13 @@ Tc.values <- data.frame(Tc = c(H1N1.Tc, H3N2.Tc),
 
 t.test(H1N1.Tc, H3N2.Tc, altnervative="two.sided")
 
-panel_g <- ggplot(Tc.values, aes(x=Tc, fill=Subtype, color=Subtype)) +
-  #geom_histogram() +
-  geom_density(alpha=0.7) +
+panel_g <- ggplot(Tc.values, aes(x=Tc, color=Subtype)) +
+  geom_density(linewidth=2) +
   ## add lines for mean gen time
   geom_vline(xintercept=mean(H1N1.Tc), color=plot_colors[[1]], linewidth=2, linetype=2) +
   geom_vline(xintercept=mean(H3N2.Tc), color=plot_colors[[2]], linewidth=2, linetype=2) +
-  scale_fill_manual(values = plot_colors) +
   scale_color_manual(values = plot_colors) +
   scale_x_continuous(breaks = seq(0, 12, 2), limits=c(0, 12)) +
-  guides(fill = guide_legend(override.aes = list(alpha=1))) +
   labs(x=expression(paste("Mean generation time ", T[c], " (days)")), y="Density") + 
   theme_light()
 
@@ -428,6 +420,6 @@ panel_g <- ggplot(Tc.values, aes(x=Tc, fill=Subtype, color=Subtype)) +
 
 top <- ggarrange(panel_a, panel_b, panel_c, panel_d, ncol=4, labels=c("A", "B", "C", "D"), align="h")
 
-bottom <- ggarrange(panel_e, panel_f, panel_g, ncol=3, labels=c("E", "F", "G"), align="h", common.legend = T, legend="right")
+bottom <- ggarrange(panel_e, panel_f, panel_g, ncol=3, labels=c("E", "F", "G"), align="h", common.legend = T, legend="right", widths = c(2, 1, 1))
 
 ggarrange(top, bottom, nrow=2, align="v")
