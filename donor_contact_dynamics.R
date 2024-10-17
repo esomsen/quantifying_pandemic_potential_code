@@ -56,7 +56,7 @@ panel_a <- ggplot(H1N1.init.titers, aes(x=numeric_dose, y=nw_titer)) +
               color="black", linewidth=1) +
   guides(color = "none") +
   ## signif
-  annotate("text", x=3, y=7, label="*", size=10, color="black") +
+  annotate("text", x=2:2, y=7:5.5, label=c("p < 0.001", "R ^ 2 == 0.881"), parse=T, size=8, color="black") +
   labs(title="A", x=NULL, y=expression(paste("Index initial titer (", TCID[50], "/mL)"))) +
   scale_y_continuous(breaks=c(0, 2, 4, 6, 8), limits = c(0, 8), labels=c(expression(10^0), expression(10^2), expression(10^4), expression(10^6), expression(10^8))) +
   scale_x_continuous(breaks=seq(0, 6, 1), limits=c(-0.2, 6.2), labels=c(expression(10^0), expression(10^1), expression(10^2), expression(10^3), expression(10^4), expression(10^5), expression(10^6))) +
@@ -219,7 +219,7 @@ panel_e <- ggplot(H3N2.init.titers, aes(x=numeric_dose, y=nw_titer)) +
               color="black", linewidth=1) +
   guides(color = "none") +
   ## signif
-  annotate("text", x=3, y=7, label="*", size=10, color="black") +
+  annotate("text", x=2:2, y=7:5.5, label=c("p < 0.001", "R ^ 2 == 0.565"), parse=T, size=8, color="black") +
   labs(title="E", x=expression(paste("Index dose (", TCID[50], "/mL)")), y=expression(paste("Index initial titer (",TCID[50], "/mL)"))) +
   scale_y_continuous(breaks=c(0, 2, 4, 6, 8), limits = c(0, 8), labels=c(expression(10^0), expression(10^2), expression(10^4), expression(10^6), expression(10^8))) +
   scale_x_continuous(breaks=seq(0, 6, 1), limits=c(-0.2, 6.2), labels=c(expression(10^0), expression(10^1), expression(10^2), expression(10^3), expression(10^4), expression(10^5), expression(10^6))) +
@@ -240,7 +240,8 @@ panel_f <- ggplot(H3N2.donor.AUC, aes(x=numeric_dose, y=AUC, color=type, fill=ty
   labs(title="F", x=expression(paste("Index dose (",TCID[50], "/mL)")), y="Index AUC") +
   guides(color="none") +
   ## signif
-  annotate("text", x=3, y=26.5, label="*", size=10, color="black") +
+  annotate("text", x=2, y=27, label="p == 0.008", parse=T, size=8, color="black") +
+  annotate("text", x=2, y=23.5, label="R ^ 2 == 0.345", parse=T, size=8, color="black") +
   scale_y_continuous(limits = c(0, 30), breaks = seq(0, 30, 4)) +
   scale_x_continuous(breaks=seq(0, 6, 1), limits=c(-0.2, 6.2), labels=c(expression(10^0), expression(10^1), expression(10^2), expression(10^3), expression(10^4), expression(10^5), expression(10^6))) +
   theme_light()
