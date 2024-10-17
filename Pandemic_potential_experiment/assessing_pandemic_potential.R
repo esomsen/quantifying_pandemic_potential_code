@@ -195,6 +195,10 @@ panel_c <- ggplot(as.data.frame(H1N1.gen.times[,4]), aes(x=H1N1.gen.times[, 4]))
   ylim(0, 5) +
   theme_light()
 
+## find number of simulations with k <= 1
+
+length(which(H1N1.negb.fits[1,] <= 1))
+
 # H3N2 analysis -----------------------------------------------------------
 
 H3N2_ferrets <- read_csv("H3N2_raw_titer_data.csv", col_names = T, show_col_types = F)
@@ -362,6 +366,10 @@ panel_d <- ggplot(as.data.frame(H3N2.gen.times[,5]), aes(x=H3N2.gen.times[, 5]))
   ylim(0, 5) +
   theme_light()
 
+## find number of simulations with k <= 1
+
+length(which(H3N2.negb.fits[1,] <= 1))
+
 # joint plots -------------------------------------------------------------
 
 ## plot mu distribution and test significance 
@@ -391,7 +399,7 @@ k.density <- data.frame(k = c(H1N1.negb.fits[1,], H3N2.negb.fits[1,]),
                              Subtype = c(rep("H1N1", its), rep("H3N2", its)))
 
 panel_f <- ggplot(k.density, aes(k, color=Subtype)) +
-  stat_ecdf(geom="line", linewidth=2) +
+  stat_ecdf(geom="step", linewidth=2) +
   scale_color_manual(values = plot_colors) +
   scale_x_continuous(limits=c(0, 2), breaks=c(0, 1, 2)) +
   labs(x="Overdispersion parameter k", y="Cumulative density") +
