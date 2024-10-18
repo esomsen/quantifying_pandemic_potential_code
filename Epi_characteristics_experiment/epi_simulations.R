@@ -12,6 +12,7 @@ mean.R0s <- data.frame(contact.nums = contact.nums,
 mean.R0s <- mean.R0s %>%
   pivot_longer(cols=2:3, names_to = "Subtype", values_to = "R0")
 
+## calculate 95% confidence intervals
 H1N1.CIs <- data.frame(contact.nums = contact.nums,
                   lower = H1N1.R0s[2,], 
                   upper = H1N1.R0s[3,], 
@@ -24,9 +25,9 @@ H3N2.CIs <- data.frame(contact.nums = contact.nums,
 R0.CIs <- rbind(H1N1.CIs, H3N2.CIs) %>%
   merge(mean.R0s)
 
-panel_a <- ggplot(R0.CIs, aes(x=contact.nums, y=R0, color=Subtype, fill=Subtype)) +
-  geom_col(position = position_dodge(width=0.9), alpha=0.7) +
-  geom_errorbar(aes(ymin=lower, ymax=upper), position=position_dodge(width=0.9), color="black") +
+panel_a <- ggplot(R0.CIs, aes(x=contact.nums, y=R0, color=Subtype, group=Subtype)) +
+  geom_point(size=3) +
+  geom_line(linewidth=2) + 
   scale_color_manual(values = c(plot_colors[[1]], plot_colors[[2]])) + 
   scale_fill_manual(values = c(plot_colors[[1]], plot_colors[[2]])) +
   guides(color="none", fill="none") +
@@ -44,26 +45,30 @@ find.prob.extinction <- function(R0, k){
 }
 
 ## calculate prob of extinction for each subtype at each contact rate
-H1N1.extinction.probs <- c()
-H3N2.extinction.probs <- c()
+## assuming k=1 and k=large
+H1N1.extinction.probs <- matrix(data=NA, nrow=2, ncol=length(contact.nums))
+H3N2.extinction.probs <- matrix(data=NA, nrow=2, ncol=length(contact.nums))
 
 for (c in 1:length(contact.nums)){
-  H1N1.extinction.probs[c] <- find.prob.extinction(H1N1.R0s[1,c], H1N1.ks[c])
-  H3N2.extinction.probs[c] <- find.prob.extinction(H3N2.R0s[1,c], H3N2.ks[c])
+  H1N1.extinction.probs[1, c] <- find.prob.extinction(H1N1.R0s[1,c], 1)
+  H1N1.extinction.probs[2, c] <- find.prob.extinction(H1N1.R0s[1,c], 1e10)
+  
+  H3N2.extinction.probs[1, c] <- find.prob.extinction(H3N2.R0s[1,c], 1)
+  H3N2.extinction.probs[2, c] <- find.prob.extinction(H3N2.R0s[1,c], 1e10)
 }
 
 extinction.probs <- data.frame(contact.nums = contact.nums,
-                               H1N1 = H1N1.extinction.probs, 
-                               H3N2 = H3N2.extinction.probs)
+                               k1.prob.extinction = H1N1.extinction.probs[1,], 
+                               kinf.prob.extinction = H1N1.extinction.probs[2,])
 extinction.probs <- extinction.probs %>%
-  pivot_longer(cols=2:3, names_to="Subtype", values_to="prob.extinction")
+  pivot_longer(cols=2:3, names_to="k", values_to="prob.extinction")
 
-panel_b <- ggplot(extinction.probs, aes(x=contact.nums, y=1-prob.extinction, color=Subtype, fill=Subtype)) +
-  geom_col(position="dodge") +
-  scale_color_manual(values = c(plot_colors[[1]], plot_colors[[2]])) + 
-  scale_fill_manual(values = c(plot_colors[[1]], plot_colors[[2]])) +
-  guides(color="none", fill="none") +
-  labs(x="Number of contacts", y="Probability of etablishment") +
+panel_b <- ggplot(extinction.probs, aes(x=contact.nums, y=1-prob.extinction, color=k, linetype=k)) +
+  geom_point(size=3, color=plot_colors[[1]]) +
+  geom_line(linewidth=2, color=plot_colors[[1]]) + 
+  scale_linetype_manual(values=c(2, 1)) +
+  guides(linetype="none") +
+  labs(x="Number of contacts per day", y="Probability of etablishment") +
   theme_light()
 
 # stuttering chains -------------------------------------------------------
@@ -106,11 +111,11 @@ chain.lengths <- data.frame(contact.nums = c(c(colnames(H1N1.chain.length[, !col
                             cov = c(H1N1.chain.length[2, !colSums(is.na(H1N1.chain.length))], 
                                     H3N2.chain.length[2, !colSums(is.na(H3N2.chain.length))]))
 
-panel_c <- ggplot(chain.lengths, aes(x=as.numeric(contact.nums), y=mu, color=Subtype, fill=Subtype)) +
-  geom_col(position = position_dodge(width=0.9)) +
+panel_c <- ggplot(chain.lengths, aes(x=as.numeric(contact.nums), y=mu, color=Subtype, group=Subtype)) +
+  geom_point(size=3) +
+  geom_line(linewidth=2) +
   scale_color_manual(values = c(plot_colors[[1]], plot_colors[[2]])) + 
-  scale_fill_manual(values = c(plot_colors[[1]], plot_colors[[2]])) +
-  guides(color="none", fill="none") +
+  guides(color="none") +
   scale_y_continuous(breaks=seq(0, 15, 3), limits=c(0, 15)) +
   labs(x="Number of contacts per day", y="Average length of stuttering chain") +
   theme_light()
@@ -127,13 +132,17 @@ find.growth.rate.delta <- function(R, Tc){
   return(delta.r)
 }
 
+## results from the high contact rate simulation
+H1N1.Tc <- 4.112815
+H3N2.Tc <- 4.400167
+
 H1N1.growth.rates <- data.frame(Subtype = rep("H1N1", length(H1N1.R0s[1,])), 
-                                exponential.r = find.growth.rate.exp(H1N1.R0s[1,], H1N1.Tcs), 
-                                delta.r = find.growth.rate.delta(H1N1.R0s[1,], H1N1.Tcs), 
+                                exponential.r = find.growth.rate.exp(H1N1.R0s[1,], H1N1.Tc), 
+                                delta.r = find.growth.rate.delta(H1N1.R0s[1,], H1N1.Tc), 
                                 contact.rate = contact.nums)
 H3N2.growth.rates <- data.frame(Subtype = rep("H3N2", length(H3N2.R0s[1,])), 
-                                exponential.r = find.growth.rate.exp(H3N2.R0s[1,], H3N2.Tcs), 
-                                delta.r = find.growth.rate.delta(H3N2.R0s[1,], H3N2.Tcs), 
+                                exponential.r = find.growth.rate.exp(H3N2.R0s[1,], H3N2.Tc), 
+                                delta.r = find.growth.rate.delta(H3N2.R0s[1,], H3N2.Tc), 
                                 contact.rate = contact.nums)
 
 combined.growth.rates <- rbind(H1N1.growth.rates, H3N2.growth.rates)
@@ -141,7 +150,7 @@ combined.growth.rates <- rbind(H1N1.growth.rates, H3N2.growth.rates)
 panel_d <- ggplot(combined.growth.rates, aes(x=contact.rate, y=exponential.r, group=Subtype, color=Subtype)) +
   geom_linerange(aes(ymin=delta.r, ymax=exponential.r), linewidth=2) +
   scale_color_manual(values = c(plot_colors[[1]], plot_colors[[2]])) + 
-  labs(x="Number of contacts", y="Intrinsic growth rate") +
+  labs(x="Number of contacts per day", y="Intrinsic growth rate") +
   theme_light()
 
 # plot -------------------------------------------------------------------
