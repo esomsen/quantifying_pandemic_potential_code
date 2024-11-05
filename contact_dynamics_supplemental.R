@@ -142,7 +142,7 @@ panel_c <- ggplot(H1N1_time_peak, aes(x=donor_AUC, y=time)) +
               intercept = coef(H1N1_time_peak_regression)[[1]], 
               color=H1N1_color, linewidth=1) +
   ## signif
-  annotate("text", x=15, y=8, label="*", size=10, color=H1N1_color) +
+  annotate("text", x=10:10, y=9:7.5, label=c("p == 0.044", "R ^ 2 == 0.217"), parse=T, size=8, color=H1N1_color) +
   guides(color = "none") +
   labs(title="C", x=NULL, y="Time to peak titer (days)") +
   scale_y_continuous(breaks=c(0, 2, 4, 6, 8, 10), limits = c(0, 10)) +
@@ -353,13 +353,13 @@ panel_f <- ggplot(H3N2_peak_titer, aes(x=donor_AUC, y=nw_titer)) +
               intercept = coef(H3N2_peak_titer_regression)[[1]], 
               color=H3N2_color, linewidth=1) +
   ## signif
-  annotate("text", x=15, y=7, label="*", size=10, color=H3N2_color) +
+  annotate("text", x=9:9, y=7:5.5, label=c("p == 0.002", "R ^ 2 == 0.683"), parse=T, size=8, color=H3N2_color) +
   guides(color = "none") +
   labs(title="F", x="Index AUC", y=expression(paste("Peak titer (", log[10], TCID[50], ")"))) +
   scale_y_continuous(breaks=c(0, 2, 4, 6, 8), limits = c(0, 8)) +
   scale_x_continuous(breaks=seq(0, 30, 5), limits = c(0, 30)) +
-  theme_light() +
-  geom_hline(yintercept = 0.5, linetype = 2)
+  geom_hline(yintercept = 0.5, linetype = 2) +
+  theme_light()
 
 ## linear regression for time to peak titer
 H3N2_time_peak_regression <- lm(time ~ donor_AUC, H3N2_time_peak)
