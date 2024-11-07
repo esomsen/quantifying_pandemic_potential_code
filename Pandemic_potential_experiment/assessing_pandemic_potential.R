@@ -4,7 +4,6 @@ library(khroma)
 library(MASS)
 library(fitdistrplus)
 library(ggpubr)
-library(scales)
 
 ## function to add linear interpolations between measured datapoints
 interpolation <- function(row1, row2, data, interval){
@@ -401,8 +400,16 @@ k.density <- data.frame(k = c(H1N1.negb.fits[1,], H3N2.negb.fits[1,]),
 panel_f <- ggplot(k.density, aes(k, color=Subtype)) +
   stat_ecdf(geom="step", linewidth=2) +
   scale_color_manual(values = plot_colors) +
-  scale_x_continuous(limits=c(0, 2), breaks=c(0, 1, 2)) +
+  scale_x_continuous(limits=c(0, 10), breaks=c(0, 1, 2)) +
   labs(x="Overdispersion parameter k", y="Cumulative density") +
+  theme_light()
+
+panel_f <- ggplot(k.density, aes(k, color=Subtype, fill=Subtype)) +
+  geom_histogram(position="dodge") +
+  scale_color_manual(values = plot_colors) +
+  scale_fill_manual(values = plot_colors) +
+  scale_x_continuous(limits=c(0, 2), breaks=c(0, 1, 2)) +
+  labs(x="Overdispersion parameter k", y="Number of simulations") +
   theme_light()
 
 ## plot generation intervals and test significance
