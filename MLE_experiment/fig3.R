@@ -26,7 +26,7 @@ plot_colors <- color("muted")(2)
 panel_a <- ggplot(combo_MLE_trace, aes(x=s, y=likelihood, color=virus)) +
   geom_line(linewidth=1.5) +
   scale_color_manual(values = c(plot_colors[[1]], plot_colors[[2]])) + 
-  labs(x="s", y="Log likelihood", color="Subtype") +
+  labs(x="Infectiousness, s", y="Log likelihood", color="Virus") +
   geom_vline(xintercept=MLE_H1N1, color=plot_colors[1], linewidth=1, linetype = 2) +
   geom_vline(xintercept=MLE_H3N2, color=plot_colors[2], linewidth=1, linetype = 2) +
   annotate("rect", xmin=CIs_H1N1[1], xmax=CIs_H1N1[2], ymin=-80, ymax=-15, alpha=0.2, color=plot_colors[1], fill=plot_colors[1]) +
