@@ -25,9 +25,10 @@ H3N2.CIs <- data.frame(contact.nums = contact.nums,
 R0.CIs <- rbind(H1N1.CIs, H3N2.CIs) %>%
   merge(mean.R0s)
 
-panel_a <- ggplot(R0.CIs, aes(x=contact.nums, y=R0, color=Subtype, group=Subtype)) +
+panel_a <- ggplot(R0.CIs, aes(x=contact.nums, y=R0, ymin=lower, ymax=upper, fill=Subtype, color=Subtype, group=Subtype)) +
   geom_point(size=3) +
   geom_line(linewidth=2) + 
+  geom_ribbon(alpha=0.3) + 
   scale_color_manual(values = c(plot_colors[[1]], plot_colors[[2]])) + 
   scale_fill_manual(values = c(plot_colors[[1]], plot_colors[[2]])) +
   guides(color="none", fill="none") +
@@ -58,16 +59,19 @@ for (c in 1:length(contact.nums)){
 }
 
 extinction.probs <- data.frame(contact.nums = contact.nums,
-                               k1.prob.extinction = H1N1.extinction.probs[1,], 
-                               kinf.prob.extinction = H1N1.extinction.probs[2,])
+                               H1.k1.prob.extinction = H1N1.extinction.probs[1,], 
+                               H1.kinf.prob.extinction = H1N1.extinction.probs[2,], 
+                               H3.k1.prob.extinction = H3N2.extinction.probs[1,], 
+                               H3.kinf.prob.extinction = H3N2.extinction.probs[2])
 extinction.probs <- extinction.probs %>%
-  pivot_longer(cols=2:3, names_to="k", values_to="prob.extinction")
+  pivot_longer(cols=2:5, names_to="k", values_to="prob.extinction")
 
 panel_b <- ggplot(extinction.probs, aes(x=contact.nums, y=1-prob.extinction, color=k, linetype=k)) +
-  geom_point(size=3, color=plot_colors[[1]]) +
-  geom_line(linewidth=2, color=plot_colors[[1]]) + 
-  scale_linetype_manual(values=c(2, 1)) +
-  guides(linetype="none") +
+  geom_point(size=3) +
+  geom_line(linewidth=2) +
+  scale_color_manual(values = c(plot_colors[1], plot_colors[1], plot_colors[2], plot_colors[2])) +
+  scale_linetype_manual(values=c(2, 1, 2, 1)) +
+  guides(linetype="none", color="none") +
   labs(x="Number of contacts per day", y="Probability of etablishment") +
   theme_light()
 
@@ -136,20 +140,25 @@ find.growth.rate.delta <- function(R, Tc){
 H1N1.Tc <- 4.112815
 H3N2.Tc <- 4.400167
 
-H1N1.growth.rates <- data.frame(Subtype = rep("H1N1", length(H1N1.R0s[1,])), 
+H1N1.growth.rates <- data.frame(Virus = rep("H1N1", length(H1N1.R0s[1,])), 
                                 exponential.r = find.growth.rate.exp(H1N1.R0s[1,], H1N1.Tc), 
                                 delta.r = find.growth.rate.delta(H1N1.R0s[1,], H1N1.Tc), 
                                 contact.rate = contact.nums)
-H3N2.growth.rates <- data.frame(Subtype = rep("H3N2", length(H3N2.R0s[1,])), 
+H3N2.growth.rates <- data.frame(Virus = rep("H3N2", length(H3N2.R0s[1,])), 
                                 exponential.r = find.growth.rate.exp(H3N2.R0s[1,], H3N2.Tc), 
                                 delta.r = find.growth.rate.delta(H3N2.R0s[1,], H3N2.Tc), 
                                 contact.rate = contact.nums)
 
 combined.growth.rates <- rbind(H1N1.growth.rates, H3N2.growth.rates)
 
-panel_d <- ggplot(combined.growth.rates, aes(x=contact.rate, y=exponential.r, group=Subtype, color=Subtype)) +
-  geom_linerange(aes(ymin=delta.r, ymax=exponential.r), linewidth=2) +
+combined.growth.rates <- combined.growth.rates %>%
+  pivot_longer(cols=2:3, values_to="growth.rate", names_to="dist")
+
+panel_d <- ggplot(combined.growth.rates, aes(x=contact.rate, y=growth.rate, group=interaction(Virus, dist), color=Virus, linetype=dist)) +
+  geom_line(linewidth=2) +
   scale_color_manual(values = c(plot_colors[[1]], plot_colors[[2]])) + 
+  scale_linetype_manual(values = c(2, 1)) +
+  guides(linetype="none") +
   labs(x="Number of contacts per day", y="Intrinsic growth rate") +
   theme_light()
 
