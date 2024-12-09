@@ -374,67 +374,70 @@ length(which(H3N2.negb.fits[1,] <= 1))
 ## plot mu distribution and test significance 
 
 mu.vals <- data.frame(mu = c(c(H1N1.negb.fits[2,]), c(H3N2.negb.fits[2,])), 
-                      Subtype = c(rep("H1N1", its), rep("H3N2", its)))
+                      Virus = c(rep("H1N1", its), rep("H3N2", its)))
 H1N1.mean.mu <- mean(H1N1.negb.fits[2,])
 H3N2.mean.mu <- mean(H3N2.negb.fits[2,])
 
 t.test(H1N1.negb.fits[2,], H3N2.negb.fits[2,], alternative = "two.sided")
 
-panel_e <- ggplot(mu.vals, aes(x=mu, fill=Subtype, color=Subtype)) +
-  geom_density(alpha=0.7) +
-  ## add lines for mean mu
-  geom_vline(xintercept=H1N1.mean.mu, color=plot_colors[[1]], linewidth=2, linetype=2) +
-  geom_vline(xintercept=H3N2.mean.mu, color=plot_colors[[2]], linewidth=2, linetype=2) +
+panel_e <- ggplot(mu.vals, aes(x=mu, fill=Virus, color=Virus)) +
+  geom_density() +
   scale_fill_manual(values = plot_colors) +
   scale_color_manual(values = plot_colors) +
-  guides(fill = guide_legend(override.aes = list(alpha=1))) +
   xlim(0, 4) +
   labs(x=expression(paste("Basic reproductive number ", R[0])), y="Density") +
-  theme_light()
+  theme_light() +
+  theme(legend.position= "inside", legend.position.inside = c(0.8, 0.6), 
+        legend.key.size = unit(1, "cm"), legend.title = element_text(size=16), legend.text = element_text(size=12))
 
-## plot k density curve
+## plot k cumulative density
 
-k.density <- data.frame(k = c(H1N1.negb.fits[1,], H3N2.negb.fits[1,]), 
-                             Subtype = c(rep("H1N1", its), rep("H3N2", its)))
+k.vals <- matrix(data=NA, nrow=length(seq(0, 2, 0.01)), ncol=3)
+k.vals[,1] <- seq(0, 2, 0.01)
+for (i in 1:length(k.vals[,1])) {
+  k.vals[i,2] <- length(which(H1N1.negb.fits[1, ] < k.vals[i,1])) 
+  k.vals[i,3] <- length(which(H3N2.negb.fits[1, ] < k.vals[i,1])) 
+}
 
-panel_f <- ggplot(k.density, aes(k, color=Subtype)) +
-  stat_ecdf(geom="step", linewidth=2) +
+## change to proportion 
+k.vals[,2] <- k.vals[,2] / (its - length(which(is.na(H1N1.negb.fits[1,]))))
+k.vals[,3] <- k.vals[,3] / (its - length(which(is.na(H3N2.negb.fits[1,]))))
+
+## manipulate for plotting
+k.vals <- as.data.frame(k.vals)
+names(k.vals) <- c("k", "H1N1", "H3N2")
+k.vals <- k.vals %>%
+  pivot_longer(cols=2:3, names_to="Virus", values_to="prop")
+
+panel_f <- ggplot(k.vals, aes(x=k, y=prop, color=Virus)) +
+  geom_line(linewidth=2) +
   scale_color_manual(values = plot_colors) +
-  scale_x_continuous(limits=c(0, 10), breaks=c(0, 1, 2)) +
   labs(x="Overdispersion parameter k", y="Cumulative density") +
-  theme_light()
-
-panel_f <- ggplot(k.density, aes(k, color=Subtype, fill=Subtype)) +
-  geom_histogram(position="dodge") +
-  scale_color_manual(values = plot_colors) +
-  scale_fill_manual(values = plot_colors) +
-  scale_x_continuous(limits=c(0, 2), breaks=c(0, 1, 2)) +
-  labs(x="Overdispersion parameter k", y="Number of simulations") +
-  theme_light()
+  ylim(0, 0.3) +
+  theme_light() +
+  theme(legend.position = "none")
 
 ## plot generation intervals and test significance
 
 H1N1.Tc <- c(H1N1.gen.times)[!is.na(c(H1N1.gen.times))]
 H3N2.Tc <- c(H3N2.gen.times)[!is.na(c(H3N2.gen.times))]
 Tc.values <- data.frame(Tc = c(H1N1.Tc, H3N2.Tc), 
-                        Subtype = c(rep("H1N1", length(H1N1.Tc)), rep("H3N2", length(H3N2.Tc))))
+                        Virus = c(rep("H1N1", length(H1N1.Tc)), rep("H3N2", length(H3N2.Tc))))
 
 t.test(H1N1.Tc, H3N2.Tc, altnervative="two.sided")
 
-panel_g <- ggplot(Tc.values, aes(x=Tc, color=Subtype)) +
+panel_g <- ggplot(Tc.values, aes(x=Tc, color=Virus)) +
   geom_density(linewidth=2) +
-  ## add lines for mean gen time
-  geom_vline(xintercept=mean(H1N1.Tc), color=plot_colors[[1]], linewidth=2, linetype=2) +
-  geom_vline(xintercept=mean(H3N2.Tc), color=plot_colors[[2]], linewidth=2, linetype=2) +
   scale_color_manual(values = plot_colors) +
   scale_x_continuous(breaks = seq(0, 12, 2), limits=c(0, 12)) +
   labs(x=expression(paste("Mean generation time ", T[c], " (days)")), y="Density") + 
-  theme_light()
+  theme_light() +
+  theme(legend.position = "none")
 
 ## all plots
 
 top <- ggarrange(panel_a, panel_b, panel_c, panel_d, ncol=4, labels=c("A", "B", "C", "D"), align="h")
 
-bottom <- ggarrange(panel_e, panel_f, panel_g, ncol=3, labels=c("E", "F", "G"), align="h", common.legend = T, legend="right", widths = c(2, 1, 1))
+bottom <- ggarrange(panel_e, panel_f, panel_g, ncol=3, labels=c("E", "F", "G"), align="h", common.legend = F, widths = c(2, 1, 1))
 
 ggarrange(top, bottom, nrow=2, align="v")
