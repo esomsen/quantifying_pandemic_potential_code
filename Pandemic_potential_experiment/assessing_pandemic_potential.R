@@ -392,8 +392,8 @@ panel_e <- ggplot(mu.vals, aes(x=mu, fill=Virus, color=Virus)) +
 
 ## plot k cumulative density
 
-k.vals <- matrix(data=NA, nrow=length(seq(0, 2, 0.01)), ncol=3)
-k.vals[,1] <- seq(0, 2, 0.01)
+k.vals <- matrix(data=NA, nrow=length(seq(0, 1.5, 0.01)), ncol=3)
+k.vals[,1] <- seq(0, 1.5, 0.01)
 for (i in 1:length(k.vals[,1])) {
   k.vals[i,2] <- length(which(H1N1.negb.fits[1, ] < k.vals[i,1])) 
   k.vals[i,3] <- length(which(H3N2.negb.fits[1, ] < k.vals[i,1])) 
@@ -413,7 +413,7 @@ panel_f <- ggplot(k.vals, aes(x=k, y=prop, color=Virus)) +
   geom_line(linewidth=2) +
   scale_color_manual(values = plot_colors) +
   labs(x="Overdispersion parameter k", y="Cumulative density") +
-  ylim(0, 0.3) +
+  ylim(0, 0.25) +
   theme_light() +
   theme(legend.position = "none")
 
