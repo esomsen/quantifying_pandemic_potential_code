@@ -1,4 +1,5 @@
 library(tidyverse)
+library(tidyverse)
 library(DescTools)
 
 ## import data
@@ -24,7 +25,7 @@ DI_ferrets <- DI_ferrets %>%
 
 donor_names <- unique(DI_ferrets$Ferret_ID)
 
-LOD <- 0.5
+LOD <- 1
 
 ## function to add linear interpolations between measured datapoints
 interpolation <- function(row1, row2, data, interval){
@@ -90,7 +91,7 @@ for (i in s_vals){
         filter(dpe <= t)
       xval <- VL$dpe
       yval <- VL$nw_titer * i
-      ## find which elements have titer <= 0.5
+      ## find which elements have titer <= LOD
       below_LOD <- which(VL$nw_titer <= LOD)
       ## if any titers below, set the values of those to 0
       if (length(below_LOD) >= 1){

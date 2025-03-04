@@ -14,7 +14,7 @@ DI_ferrets <- ferrets %>%
   mutate(dpe = time - 1)
 donor_names <- unique(DI_ferrets$Ferret_ID)
 
-LOD <- 0.5
+LOD <- 1
 
 ## function to add linear interpolations between measured datapoints
 interpolation <- function(row1, row2, data, interval){
@@ -80,8 +80,8 @@ for (i in s_vals){
         filter(dpe <= t)
       xval <- VL$dpe
       yval <- VL$nw_titer * i
-      ## find which elements have titer <= 0.5
-      below_LOD <- which(VL$nw_titer <= 0.5)
+      ## find which elements have titer <= LOD
+      below_LOD <- which(VL$nw_titer <= LOD)
       ## if any titers below, set the values of those to 0
       if (length(below_LOD) >= 1){
         for (k in below_LOD){
@@ -107,7 +107,7 @@ for (i in s_vals){
       filter(DI_RC == "RC") %>%
       filter(DI_RC_Pair == ferret) %>%
       mutate(dpe = time - 1)
-    if (max(partner$nw_titer) > 0.5){
+    if (max(partner$nw_titer) > LOD){
       first_positive_index <- which.max(partner$nw_titer > LOD)
       first_positive_time <- as.numeric(as.character(partner[first_positive_index, "dpe"]))
       ## if the first positive test is at 2dpi, call the last negative time at 0
