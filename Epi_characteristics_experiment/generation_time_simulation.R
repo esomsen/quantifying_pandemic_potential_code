@@ -21,11 +21,11 @@ calculate_pr_contact_pos <- function(lambda_integral){
 }
 
 interpolation_interval <- 0.001
-LOD <- 0.5
+LOD <- 1
 
 ## MLE for s
-MLE_H1N1 <- 0.111
-MLE_H3N2 <- 0.044
+MLE_H1N1 <- 0.114
+MLE_H3N2 <- 0.047
 
 ## define "contact" as one hour of exposure
 exposure.length <- 1/24
