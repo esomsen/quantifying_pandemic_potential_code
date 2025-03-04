@@ -5,6 +5,8 @@ library(khroma)
 H3N2_color <- color("muted")(2)
 H3N2_color <- H3N2_color[[2]]
 
+LOD <- 1
+
 ferrets <- read_csv("H3N2_raw_titer_data.csv", col_names = T, show_col_types = F)
 colnames(ferrets) <- c("Ferret_ID", "DI_RC", "DI_RC_Pair", "Dose", "dpi", "nw_titer", "donor_dose")
 
@@ -13,7 +15,7 @@ colnames(ferrets) <- c("Ferret_ID", "DI_RC", "DI_RC_Pair", "Dose", "dpi", "nw_ti
 all_10.6 <- ferrets %>%
   filter(Dose == "10^6" | donor_dose == "10^6") %>%
   mutate(dpch = dpi - 1) %>%
-  mutate(LOD_shape = ifelse(nw_titer <= 0.5, "below", "above")) 
+  mutate(LOD_shape = ifelse(nw_titer <= LOD, "below", "above")) 
 
 all_10.6$pair_shape <- c(rep(0, nrow(all_10.6)))
 
@@ -36,7 +38,7 @@ all_10.6$shape_combo <- paste(all_10.6$LOD_shape, "-", all_10.6$pair_shape)
 all_10.4 <- ferrets %>%
   filter(Dose == "10^4" | donor_dose == "10^4") %>%
   mutate(dpch = dpi - 1) %>%
-  mutate(LOD_shape = ifelse(nw_titer <= 0.5, "below", "above")) 
+  mutate(LOD_shape = ifelse(nw_titer <= LOD, "below", "above")) 
 
 all_10.4$pair_shape <- c(rep(0, nrow(all_10.4)))
 
@@ -62,7 +64,7 @@ all_10.4$shape_combo <- paste(all_10.4$LOD_shape, "-", all_10.4$pair_shape)
 all_10.3 <- ferrets %>%
   filter(Dose == "10^3" | donor_dose == "10^3") %>%
   mutate(dpch = dpi - 1) %>%
-  mutate(LOD_shape = ifelse(nw_titer <= 0.5, "below", "above")) 
+  mutate(LOD_shape = ifelse(nw_titer <= LOD, "below", "above")) 
 
 all_10.3$pair_shape <- c(rep(0, nrow(all_10.3)))
 
@@ -85,7 +87,7 @@ all_10.3$shape_combo <- paste(all_10.3$LOD_shape, "-", all_10.3$pair_shape)
 all_10.2 <- ferrets %>%
   filter(Dose == "10^2" | donor_dose == "10^2") %>%
   mutate(dpch = dpi - 1) %>%
-  mutate(LOD_shape = ifelse(nw_titer <= 0.5, "below", "above")) 
+  mutate(LOD_shape = ifelse(nw_titer <= LOD, "below", "above")) 
 
 all_10.2$pair_shape <- c(rep(0, nrow(all_10.2)))
 
@@ -108,7 +110,7 @@ all_10.2$shape_combo <- paste(all_10.2$LOD_shape, "-", all_10.2$pair_shape)
 all_10.1 <- ferrets %>%
   filter(Dose == "10^1" | donor_dose == "10^1") %>%
   mutate(dpch = dpi - 1) %>%
-  mutate(LOD_shape = ifelse(nw_titer <= 0.5, "below", "above")) 
+  mutate(LOD_shape = ifelse(nw_titer <= LOD, "below", "above")) 
 
 all_10.1$pair_shape <- c(rep(0, nrow(all_10.1)))
 
@@ -131,7 +133,7 @@ all_10.1$shape_combo <- paste(all_10.1$LOD_shape, "-", all_10.1$pair_shape)
 all_10.0 <- ferrets %>%
   filter(Dose == "10^0" | donor_dose == "10^0") %>%
   mutate(dpch = dpi - 1) %>%
-  mutate(LOD_shape = ifelse(nw_titer <= 0.5, "below", "above")) 
+  mutate(LOD_shape = ifelse(nw_titer <= LOD, "below", "above")) 
 
 all_10.0$pair_shape <- c(rep(0, nrow(all_10.1)))
 
@@ -160,7 +162,7 @@ p_10.6 <- ggplot(all_10.6, aes(x=dpch, y=nw_titer, color=DI_RC, group=pair_shape
   scale_y_continuous(limits=c(0, 7), breaks = seq(0, 7, 2), labels=c(expression(10^0), expression(10^2), expression(10^4), expression(10^6))) +
   guides(shape = "none") +
   theme_light() +
-  geom_hline(yintercept = 0.5, linetype = 2) +
+  geom_hline(yintercept = LOD, linetype = 2) +
   geom_text(label="TE = 3/4", x=11, y=5, color="black") +
   labs(x = NULL, y=NULL, color=NULL)
 
@@ -174,7 +176,7 @@ p_10.4 <- ggplot(all_10.4, aes(x=dpch, y=nw_titer, color=DI_RC)) +
   guides(shape = "none") +
   theme(legend.position = "top") +
   theme_light() +
-  geom_hline(yintercept = 0.5, linetype = 2) +
+  geom_hline(yintercept = LOD, linetype = 2) +
   geom_text(label="TE = 4/4", x=11, y=5, color="black") +
   labs(x = NULL, y = NULL, color=NULL)
 
@@ -188,7 +190,7 @@ p_10.3 <- ggplot(all_10.3, aes(x=dpch, y=nw_titer, color=DI_RC)) +
   guides(shape = "none") +
   theme(legend.position = "top") +
   theme_light() +
-  geom_hline(yintercept = 0.5, linetype = 2) +
+  geom_hline(yintercept = LOD, linetype = 2) +
   geom_text(label="TE = 1/4", x=11, y=5, color="black") +
   labs(x = NULL, y = NULL, color=NULL)
 
@@ -202,7 +204,7 @@ p_10.2 <- ggplot(all_10.2, aes(x=dpch, y=nw_titer, color=DI_RC)) +
   guides(shape = "none") +
   theme(legend.position = "top") +
   theme_light() +
-  geom_hline(yintercept = 0.5, linetype = 2) +
+  geom_hline(yintercept = LOD, linetype = 2) +
   geom_text(label="TE = 2/4", x=11, y=5, color="black") +
   labs(x = NULL, y = NULL, color=NULL)
 
@@ -216,7 +218,7 @@ p_10.1 <- ggplot(all_10.1, aes(x=dpch, y=nw_titer, color=DI_RC)) +
   guides(shape = "none") +
   theme(legend.position = "top") +
   theme_light() +
-  geom_hline(yintercept = 0.5, linetype = 2) +
+  geom_hline(yintercept = LOD, linetype = 2) +
   geom_text(label="TE = 1/3", x=11, y=5, color="black") +
   labs(x = NULL, y = NULL, color=NULL)
 
@@ -230,7 +232,7 @@ p_10.0 <- ggplot(all_10.0, aes(x=dpch, y=nw_titer, color=DI_RC)) +
   guides(shape = "none") +
   theme(legend.position = "top") +
   theme_light() +
-  geom_hline(yintercept = 0.5, linetype = 2) +
+  geom_hline(yintercept = LOD, linetype = 2) +
   geom_text(label="TE = NA", x=11, y=5, color="black") +
   labs(x = NULL, y = NULL, color=NULL)
 
@@ -240,8 +242,8 @@ H3N2 <- ggarrange(p_10.0, p_10.1, p_10.2, p_10.3, p_10.4, p_10.6,
                   nrow = 6, 
                   common.legend = T, labels = c("G", "H", "I", "J", "K", "L"), 
                   vjust=-.1,
-                  legend = "top")
+                  legend = "none")
 
-H3N2 <- annotate_figure(H3N2, left = text_grob(expression(paste("Viral titer (", TCID[50], "/mL", ")")), rot = 90), bottom = "Days post exposure")
+H3N2 <- annotate_figure(H3N2, left = text_grob(expression(paste("Viral titer (", TCID[50], "/mL", ")")), rot = 90), bottom = "Days post exposure", top="H3N2")
 
 ggarrange(H1N1, H3N2, ncol=2)
