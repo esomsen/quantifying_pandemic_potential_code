@@ -23,11 +23,11 @@ calculate_pr_contact_pos <- function(lambda_integral){
 }
 
 interpolation_interval <- 0.001
-LOD <- 0.5
+LOD <- 1
 
 ## MLE for s
-MLE_H1N1 <- 0.111
-MLE_H3N2 <- 0.044
+MLE_H1N1 <- 0.114
+MLE_H3N2 <- 0.047
 
 ## define "contact" as one hour of exposure
 exposure.length <- 1/24
@@ -44,7 +44,7 @@ set.seed(25)
 
 # H1N1 analysis -----------------------------------------------------------
 
-H1N1_ferrets <- read_csv("H1N1_raw_titer_data.csv", col_names = T, show_col_types = F)
+H1N1_ferrets <- read_csv("/home/esomsen/within-host/H1N1_raw_titer_data.csv", col_names = T, show_col_types = F)
 colnames(H1N1_ferrets) <- c("Ferret_ID", "DI_RC", "DI_RC_Pair", "Dose", "dpi", "nw_titer", "donor_dose")
 
 H1N1_RC_ferrets <- H1N1_ferrets %>%
@@ -200,7 +200,7 @@ length(which(H1N1.negb.fits[1,] <= 1))
 
 # H3N2 analysis -----------------------------------------------------------
 
-H3N2_ferrets <- read_csv("H3N2_raw_titer_data.csv", col_names = T, show_col_types = F)
+H3N2_ferrets <- read_csv("/home/esomsen/within-host/H3N2_raw_titer_data.csv", col_names = T, show_col_types = F)
 colnames(H3N2_ferrets) <- c("Ferret_ID", "DI_RC", "DI_RC_Pair", "Dose", "dpi", "nw_titer", "donor_dose")
 
 H3N2_RC_ferrets <- H3N2_ferrets %>%
