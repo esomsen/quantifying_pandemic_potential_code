@@ -21,11 +21,11 @@ calculate_pr_contact_pos <- function(lambda_integral){
 }
 
 interpolation_interval <- 0.001
-LOD <- 0.5
+LOD <- 1
 
 ## MLE for s
-MLE_H1N1 <- 0.111
-MLE_H3N2 <- 0.044
+MLE_H1N1 <- 0.114
+MLE_H3N2 <- 0.047
 
 ## define "contact" as one hour of exposure
 exposure.length <- 1/24
@@ -78,7 +78,7 @@ for (ferret in H1N1_recipient_names){
       mutate(dpe = as.numeric(dpe))
   } else { ## if infection hasn't yet resolved, add another interpolation for assumed negative test
     times <- seq(df_9.11[[length(df_9.11$dpe), "dpe"]], 13, interpolation_interval)
-    preds <- seq(df_9.11[[length(df_9.11$dpe), "nw_titer"]], 0.5, length.out=length(times))
+    preds <- seq(df_9.11[[length(df_9.11$dpe), "nw_titer"]], LOD, length.out=length(times))
     df_11.13 <- data.frame(dpe = times,
                            nw_titer = preds)
     combo <- rbind(ferret_data, df_1.3, df_3.5, df_5.7, df_7.9, df_9.11, df_11.13)
@@ -235,7 +235,7 @@ for (ferret in H3N2_recipient_names){
       mutate(dpe = as.numeric(dpe))
   } else { ## if infection hasn't yet resolved, add another interpolation for assumed negative test
     times <- seq(df_9.11[[length(df_9.11$dpe), "dpe"]], 13, interpolation_interval)
-    preds <- seq(df_9.11[[length(df_9.11$dpe), "nw_titer"]], 0.5, length.out=length(times))
+    preds <- seq(df_9.11[[length(df_9.11$dpe), "nw_titer"]], LOD, length.out=length(times))
     df_11.13 <- data.frame(dpe = times,
                            nw_titer = preds)
     combo <- rbind(ferret_data, df_1.3, df_3.5, df_5.7, df_7.9, df_9.11, df_11.13)
