@@ -137,8 +137,8 @@ find.growth.rate.delta <- function(R, Tc){
 }
 
 ## results from the high contact rate simulation
-H1N1.Tc <- 3.851
-H3N2.Tc <- 3.074
+H1N1.Tc <- 3.781
+H3N2.Tc <- 3.488
 
 H1N1.growth.rates <- data.frame(Virus = rep("H1N1", length(H1N1.R0s[1,])), 
                                 exponential.t = find.growth.rate.exp(H1N1.R0s[1,], H1N1.Tc), 
