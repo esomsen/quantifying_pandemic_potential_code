@@ -2,8 +2,7 @@ library(tidyverse)
 library(ggpubr)
 library(khroma)
 
-H3N2_color <- color("muted")(2)
-H3N2_color <- H3N2_color[[2]]
+H3N2_color <- "#422cb1"
 
 LOD <- 1
 
@@ -154,7 +153,7 @@ for (row in 1:nrow(all_10.1)){
 all_10.0$shape_combo <- paste(all_10.0$LOD_shape, "-", all_10.0$pair_shape)
 
 p_10.6 <- ggplot(all_10.6, aes(x=dpch, y=nw_titer, color=DI_RC, group=pair_shape)) +
-  geom_point(aes(shape=shape_combo), size=2) +
+  geom_point(aes(shape=shape_combo), size=3) +
   geom_line(aes(group=Ferret_ID), linewidth=1) +
   scale_color_manual(labels = c("H3N2 Index", "H3N2 Contact"), values = c("black", H3N2_color)) +
   scale_shape_manual(values=c(15, 16, 17, 18, 0, 1, 2, 5)) +
@@ -167,7 +166,7 @@ p_10.6 <- ggplot(all_10.6, aes(x=dpch, y=nw_titer, color=DI_RC, group=pair_shape
   labs(x = NULL, y=NULL, color=NULL)
 
 p_10.4 <- ggplot(all_10.4, aes(x=dpch, y=nw_titer, color=DI_RC)) +
-  geom_point(aes(shape=shape_combo), size=2) +
+  geom_point(aes(shape=shape_combo), size=3) +
   geom_line(aes(group=Ferret_ID), linewidth=1) +
   scale_color_manual(labels = c("H3N2 Index", "H3N2 Contact"), values = c("black", H3N2_color)) +
   scale_shape_manual(values=c(15, 16, 17, 18, 0, 1, 2, 5)) +
@@ -181,7 +180,7 @@ p_10.4 <- ggplot(all_10.4, aes(x=dpch, y=nw_titer, color=DI_RC)) +
   labs(x = NULL, y = NULL, color=NULL)
 
 p_10.3 <- ggplot(all_10.3, aes(x=dpch, y=nw_titer, color=DI_RC)) +
-  geom_point(aes(shape=shape_combo), size=2) +
+  geom_point(aes(shape=shape_combo), size=3) +
   geom_line(aes(group=Ferret_ID), linewidth=1) +
   scale_color_manual(labels = c("H3N2 Index", "H3N2 Contact"), values = c("black", H3N2_color)) +
   scale_shape_manual(values=c(15, 16, 17, 18, 0, 1, 2, 5)) +
@@ -195,7 +194,7 @@ p_10.3 <- ggplot(all_10.3, aes(x=dpch, y=nw_titer, color=DI_RC)) +
   labs(x = NULL, y = NULL, color=NULL)
 
 p_10.2 <- ggplot(all_10.2, aes(x=dpch, y=nw_titer, color=DI_RC)) +
-  geom_point(aes(shape=shape_combo), size=2) +
+  geom_point(aes(shape=shape_combo), size=3) +
   geom_line(aes(group=Ferret_ID), linewidth=1) +
   scale_color_manual(labels = c("H3N2 Index", "H3N2 Contact"), values = c("black", H3N2_color)) +
   scale_shape_manual(values=c(15, 16, 17, 18, 0, 1, 2, 5)) +
@@ -209,7 +208,7 @@ p_10.2 <- ggplot(all_10.2, aes(x=dpch, y=nw_titer, color=DI_RC)) +
   labs(x = NULL, y = NULL, color=NULL)
 
 p_10.1 <- ggplot(all_10.1, aes(x=dpch, y=nw_titer, color=DI_RC)) +
-  geom_point(aes(shape=shape_combo), size=2) +
+  geom_point(aes(shape=shape_combo), size=3) +
   geom_line(aes(group=Ferret_ID), linewidth=1) +
   scale_color_manual(labels = c("H3N2 Index", "H3N2 Contact"), values = c("black", H3N2_color)) +
   scale_shape_manual(values=c(15, 16, 17, 18, 0, 1, 2, 5)) +
@@ -223,7 +222,7 @@ p_10.1 <- ggplot(all_10.1, aes(x=dpch, y=nw_titer, color=DI_RC)) +
   labs(x = NULL, y = NULL, color=NULL)
 
 p_10.0 <- ggplot(all_10.0, aes(x=dpch, y=nw_titer, color=DI_RC)) +
-  geom_point(aes(shape=shape_combo), size=2) +
+  geom_point(aes(shape=shape_combo), size=3) +
   geom_line(aes(group=Ferret_ID), linewidth=1) +
   scale_color_manual(labels = c("H3N2 Index", "H3N2 Contact"), values = c("black", H3N2_color)) +
   scale_shape_manual(values=c(15, 16, 17, 18, 0, 1, 2, 5)) +
