@@ -426,13 +426,21 @@ Tc.values <- data.frame(Tc = c(H1N1.Tc, H3N2.Tc),
 
 t.test(H1N1.Tc, H3N2.Tc, altnervative="two.sided")
 
+## add line segments so kernel density isn't misleading at 0
+H1.zero.dens <- data.frame(x1 = 0, x2=0, y1=0, y2=0.047)
+H3.zero.dens <- data.frame(x1 = 0, x2=0, y1=0, y2=0.025)
+
+
 panel_g <- ggplot(Tc.values, aes(x=Tc, color=Virus)) +
   geom_density(linewidth=2) +
-  scale_color_manual(values = plot_colors) +
+  geom_segment(data=H3.zero.dens, aes(x=x1, y=y1, xend=x2, yend=y2, color=plot_colors[2]), linewidth=2) +
+  geom_segment(data=H1.zero.dens, aes(x=x1, y=y1, xend=x2, yend=y2, color=plot_colors[1]), linewidth=2) +
+  scale_color_manual(values = c(plot_colors, plot_colors)) +
   scale_x_continuous(breaks = seq(0, 12, 2), limits=c(0, 12)) +
   labs(x=expression(paste("Mean generation time ", T[c], " (days)")), y="Density") + 
   theme_light() +
   theme(legend.position = "none")
+
 
 ## all plots
 
