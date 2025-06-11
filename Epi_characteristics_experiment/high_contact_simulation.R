@@ -29,7 +29,7 @@ MLE_H3N2 <- 0.047
 exposure.length <- 1/24
 
 ## number of contacts per day
-num.contacts <- 100
+num.contacts <- 1000
 
 ## number of trials
 its <- 1000
