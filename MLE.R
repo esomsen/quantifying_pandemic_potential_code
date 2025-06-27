@@ -266,6 +266,8 @@ H1N1.CIs <- H1N1.CIs[c(2,5),1]
 H3N2.CIs <- prob.trace[near(prob.trace[which.max(H3N2.log.probs),3]-1.92, prob.trace$H3N2.pr, tol=0.11),c(1,3)]
 H3N2.CIs <- H3N2.CIs[2:3,1]
 
+save(prob.trace, file="prob.trace.Rdata")
+
 # plots -------------------------------------------------------------------
 
 library(khroma)
