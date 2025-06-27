@@ -258,7 +258,9 @@ prob.trace <- data.frame(s = s_vals,
                          H3N2.pr = H3N2.log.probs)
 
 H1N1.MLE <- prob.trace[which.max(H1N1.log.probs),1]
+H1N1.MLE.logL <- prob.trace[which.max(H1N1.log.probs),2]
 H3N2.MLE <- prob.trace[which.max(H3N2.log.probs),1]
+H3N2.MLE.logL <- prob.trace[which.max(H3N2.log.probs),3] 
 
 H1N1.CIs <- prob.trace[near(prob.trace[which.max(H1N1.log.probs),2]-1.92, prob.trace$H1N1.pr, tol=0.11),1:2]
 H1N1.CIs <- H1N1.CIs[c(2,5),1]
@@ -267,6 +269,8 @@ H3N2.CIs <- prob.trace[near(prob.trace[which.max(H3N2.log.probs),3]-1.92, prob.t
 H3N2.CIs <- H3N2.CIs[2:3,1]
 
 save(prob.trace, file="prob.trace.Rdata")
+save(H1N1.MLE.logL, file="H1N1.MLE.logL.Rdata")
+save(H3N2.MLE.logL, file="H3N2.MLE.logL.Rdata")
 
 # plots -------------------------------------------------------------------
 
