@@ -164,7 +164,7 @@ for (i in 1:its){
 
 ## plot offspring distribution for one simulation
 
-panel_a <- ggplot(as.data.frame(H1N1.indv.Z[,4]), aes(x=H1N1.indv.Z[, 4])) +
+panel_a <- ggplot(as.data.frame(H1N1.indv.Z[,14]), aes(x=H1N1.indv.Z[, 14])) +
   geom_histogram(closed="right", center=1, binwidth=0.5, fill=plot_colors[[1]]) +
   labs(x="Number of secondary cases", y="Number") +
   scale_x_continuous(breaks=c(0, 1, 2, 3, 4, 5), limits=c(-0.5, 5.5)) +
@@ -173,7 +173,7 @@ panel_a <- ggplot(as.data.frame(H1N1.indv.Z[,4]), aes(x=H1N1.indv.Z[, 4])) +
 
 ## plot generation interval distribution for one simulation
 
-panel_c <- ggplot(as.data.frame(H1N1.gen.times[,4]), aes(x=H1N1.gen.times[, 4])) +
+panel_c <- ggplot(as.data.frame(H1N1.gen.times[,14]), aes(x=H1N1.gen.times[, 14])) +
   geom_histogram(closed="right", center=1, binwidth=0.25, fill=plot_colors[[1]]) +
   labs(x="Generation time (days)", y="Number") +
   scale_x_continuous(breaks=seq(0, 10, 2), limits=c(-0.5, 10.5)) +
@@ -322,7 +322,7 @@ for (i in 1:its){
 
 ## plot offspring distribution for one simulation
 
-panel_b <- ggplot(as.data.frame(H3N2.indv.Z[,5]), aes(x=H3N2.indv.Z[, 5])) +
+panel_b <- ggplot(as.data.frame(H3N2.indv.Z[,4]), aes(x=H3N2.indv.Z[,4])) +
   geom_histogram(closed="right", center=1, binwidth=0.5, fill=plot_colors[[2]]) +
   labs(x="Number of secondary cases", y="Number") +
   scale_x_continuous(breaks=c(0, 1, 2, 3, 4, 5), limits=c(-0.5, 5.5)) +
@@ -331,7 +331,7 @@ panel_b <- ggplot(as.data.frame(H3N2.indv.Z[,5]), aes(x=H3N2.indv.Z[, 5])) +
 
 ## plot generation interval distribution for one simulation
 
-panel_d <- ggplot(as.data.frame(H3N2.gen.times[,5]), aes(x=H3N2.gen.times[, 5])) +
+panel_d <- ggplot(as.data.frame(H3N2.gen.times[,4]), aes(x=H3N2.gen.times[,4])) +
   geom_histogram(closed="right", center=1, binwidth=0.25, fill=plot_colors[[2]]) +
   labs(x="Generation time (days)", y="Number") +
   scale_x_continuous(breaks=seq(0, 10, 2), limits=c(-0.5, 10.5)) +
@@ -354,7 +354,7 @@ H3N2.mean.mu <- mean(H3N2.negb.fits[2,])
 t.test(H1N1.negb.fits[2,], H3N2.negb.fits[2,], alternative = "two.sided")
 
 panel_e <- ggplot(mu.vals, aes(x=mu, fill=Virus, color=Virus)) +
-  geom_density() +
+  geom_density(alpha=0.7) +
   scale_fill_manual(values = plot_colors) +
   scale_color_manual(values = plot_colors) +
   xlim(0, 4) +
@@ -400,9 +400,8 @@ Tc.values <- data.frame(Tc = c(H1N1.Tc, H3N2.Tc),
 t.test(H1N1.Tc, H3N2.Tc, altnervative="two.sided")
 
 ## add line segments so kernel density isn't misleading at 0
-H1.zero.dens <- data.frame(x1 = 0, x2=0, y1=0, y2=0.047)
+H1.zero.dens <- data.frame(x1 = 0, x2=0, y1=0, y2=0.039)
 H3.zero.dens <- data.frame(x1 = 0, x2=0, y1=0, y2=0.025)
-
 
 panel_g <- ggplot(Tc.values, aes(x=Tc, color=Virus)) +
   geom_density(linewidth=2) +
