@@ -152,7 +152,6 @@ for (c in 1:length(contact.nums)){
       H1N1.negb.fits[,i] <- fitdist(c(tmp.num.offspring), "nbinom", method="mle")$estimate
       ## if no offspring are generated, only track Z
     } else {
-      H1N1.indv.Z[,i] <- 0
       H1N1.negb.fits[2,i] <- 0
     }
   }
@@ -297,11 +296,8 @@ for (c in 1:length(contact.nums)){
     if (sum(tmp.num.offspring > 0)) {
       ## add neg B params to tracker
       H3N2.negb.fits[,i] <- fitdist(c(tmp.num.offspring), "nbinom", method="mle")$estimate
-      ## add gen times to tracker
-      H3N2.gen.times[1:length(tmp.gen.time), i] <- tmp.gen.time
       ## if no offspring are generated, only track Z
     } else {
-      H3N2.indv.Z[,i] <- 0
       H3N2.negb.fits[2,i] <- 0
     }
   }
@@ -315,5 +311,6 @@ for (c in 1:length(contact.nums)){
   ## tidy environment
   rm(list=ls(pattern="^tmp"))
 }
+
 
 save.image(file="varying_contact_sims.RData")
