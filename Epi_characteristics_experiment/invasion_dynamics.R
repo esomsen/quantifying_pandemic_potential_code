@@ -27,14 +27,16 @@ R0.CIs <- rbind(H1N1.CIs, H3N2.CIs) %>%
 
 panel_a <- ggplot(R0.CIs, aes(x=contact.nums, y=R0, ymin=lower, ymax=upper, fill=Subtype, color=Subtype, group=Subtype)) +
   geom_point(size=3) +
-  geom_line(linewidth=2) + 
-  geom_ribbon(alpha=0.3) + 
+  geom_line(linewidth=1) + 
+  geom_ribbon(alpha=0.2) + 
   scale_color_manual(values = c(plot_colors[[1]], plot_colors[[2]])) + 
   scale_fill_manual(values = c(plot_colors[[1]], plot_colors[[2]])) +
-  guides(color="none", fill="none") +
+  guides(fill="none", colour = guide_legend(override.aes = list(fill=NA,
+                                                                linetype=c(0,0)))) +
   scale_y_continuous(limits=c(0, 4), breaks=seq(0, 4, 1)) +
-  labs(x="Number of contacts per day", y=expression(R[0])) +
-  theme_light()
+  labs(x="Average number of contacts per day", y=expression(R[0])) +
+  theme_light() +
+  theme(legend.position = "bottom")
 
 # extinction probability --------------------------------------------------
 
@@ -62,7 +64,7 @@ extinction.probs <- data.frame(contact.nums = contact.nums,
                                H1.k1.prob.extinction = H1N1.extinction.probs[1,], 
                                H1.kinf.prob.extinction = H1N1.extinction.probs[2,], 
                                H3.k1.prob.extinction = H3N2.extinction.probs[1,], 
-                               H3.kinf.prob.extinction = H3N2.extinction.probs[2])
+                               H3.kinf.prob.extinction = H3N2.extinction.probs[2,])
 extinction.probs <- extinction.probs %>%
   pivot_longer(cols=2:5, names_to="k", values_to="prob.extinction")
 
@@ -71,8 +73,8 @@ panel_b <- ggplot(extinction.probs, aes(x=contact.nums, y=1-prob.extinction, col
   geom_line(linewidth=2) +
   scale_color_manual(values = c(plot_colors[1], plot_colors[1], plot_colors[2], plot_colors[2])) +
   scale_linetype_manual(values=c(2, 1, 2, 1)) +
-  guides(linetype="none", color="none") +
-  labs(x="Number of contacts per day", y="Probability of establishment") +
+  guides(color="none", linetype="none") +
+  labs(x="Average number of contacts per day", y="Probability of establishment") +
   theme_light()
 
 # stuttering chains -------------------------------------------------------
@@ -100,12 +102,6 @@ for (c in 1:length(contact.nums)){
   }
 }
 
-## test if chain length increases with contact rate
-
-summary(lm(c(H1N1.chain.length[1,]) ~ c(as.numeric(colnames(H1N1.chain.length)))))
-
-summary(lm(c(H3N2.chain.length[1,]) ~ c(as.numeric(colnames(H3N2.chain.length)))))
-
 chain.lengths <- data.frame(contact.nums = c(c(colnames(H1N1.chain.length[, !colSums(is.na(H1N1.chain.length))])), 
                                              c(colnames(H3N2.chain.length[, !colSums(is.na(H3N2.chain.length))]))),
                             Subtype = c(rep("H1N1", length(H1N1.chain.length[1, !colSums(is.na(H1N1.chain.length))])),
@@ -118,22 +114,28 @@ chain.lengths <- data.frame(contact.nums = c(c(colnames(H1N1.chain.length[, !col
 panel_c <- ggplot(chain.lengths, aes(x=as.numeric(contact.nums), y=mu, color=Subtype, group=Subtype)) +
   geom_point(size=3) +
   geom_line(linewidth=2) +
-  scale_color_manual(values = c(plot_colors[[1]], plot_colors[[2]])) + 
+  scale_color_manual(values = c(plot_colors[[1]], plot_colors[[2]]), name="Virus") + 
+  scale_y_continuous(breaks=seq(0, 40, 5), limits=c(0, 37)) +
   guides(color="none") +
-  scale_y_continuous(breaks=seq(0, 15, 3), limits=c(0, 15)) +
-  labs(x="Number of contacts per day", y="Average length of stuttering chain") +
-  theme_light()
+  labs(x="Average number of contacts per day", y="Average length of stuttering chain") +
+  theme_light() 
 
 # intrinsic growth rate ---------------------------------------------------
 
 find.growth.rate.exp <- function(R, Tc){
-  exponential.t <- (R-1) / Tc
-  return(exponential.t)
+  exponential.r <- (R-1) / Tc
+  return(exponential.r)
 }
 
 find.growth.rate.delta <- function(R, Tc){
-  delta.t <- log(R) / Tc
-  return(delta.t)
+  delta.r <- log(R) / Tc
+  return(delta.r)
+}
+
+## using n=5
+find.growth.rate.gamma <- function(R, Tc){
+  gamma.r <- (5/Tc)*R^(1/5) - (5/Tc)
+  return(gamma.r)
 }
 
 ## results from the high contact rate simulation
@@ -141,29 +143,38 @@ H1N1.Tc <- 3.781
 H3N2.Tc <- 3.488
 
 H1N1.growth.rates <- data.frame(Virus = rep("H1N1", length(H1N1.R0s[1,])), 
-                                exponential.t = find.growth.rate.exp(H1N1.R0s[1,], H1N1.Tc), 
-                                delta.t = find.growth.rate.delta(H1N1.R0s[1,], H1N1.Tc), 
+                                exponential = find.growth.rate.exp(H1N1.R0s[1,], H1N1.Tc), 
+                                delta = find.growth.rate.delta(H1N1.R0s[1,], H1N1.Tc), 
+                                gamma = find.growth.rate.gamma(H1N1.R0s[1,], H1N1.Tc),
                                 contact.rate = contact.nums)
 H3N2.growth.rates <- data.frame(Virus = rep("H3N2", length(H3N2.R0s[1,])), 
-                                exponential.t = find.growth.rate.exp(H3N2.R0s[1,], H3N2.Tc), 
-                                delta.t = find.growth.rate.delta(H3N2.R0s[1,], H3N2.Tc), 
+                                exponential = find.growth.rate.exp(H3N2.R0s[1,], H3N2.Tc), 
+                                delta = find.growth.rate.delta(H3N2.R0s[1,], H3N2.Tc), 
+                                gamma = find.growth.rate.gamma(H3N2.R0s[1,], H3N2.Tc),
                                 contact.rate = contact.nums)
 
 combined.growth.rates <- rbind(H1N1.growth.rates, H3N2.growth.rates)
 
 combined.growth.rates <- combined.growth.rates %>%
-  pivot_longer(cols=2:3, values_to="growth.rate", names_to="dist")
+  pivot_longer(cols=2:4, values_to="growth.rate", names_to="dist")
 
 panel_d <- ggplot(combined.growth.rates, aes(x=contact.rate, y=growth.rate, group=interaction(Virus, dist), color=Virus, linetype=dist)) +
   geom_line(linewidth=2) +
   scale_color_manual(values = c(plot_colors[[1]], plot_colors[[2]])) + 
-  scale_linetype_manual(values = c(2, 1)) +
-  guides(linetype="none") +
-  labs(x="Number of contacts per day", y="Intrinsic growth rate") +
-  theme_light()
+  scale_linetype_manual(values = c(2, 3, 1), name="Distribution") +
+  guides(color="none") +
+  labs(x="Average number of contacts per day", y="Intrinsic growth rate") +
+  theme_light() +
+  theme(legend.position= "inside", legend.position.inside = c(0.3, 0.8),
+        legend.key.width = unit(4, "line"), legend.background = element_rect(fill = "white", color = "black"))
 
 # plot -------------------------------------------------------------------
 
 ggarrange(panel_a, panel_b, panel_c, panel_d, nrow=2, ncol=2, 
-          align = "v", common.legend = T, legend = "bottom", 
+          align = "v", common.legend = F, 
+          #legend = "bottom", 
           labels=c("A", "B", "C", "D"))
+
+top <- ggarrange(panel_a, panel_b, ncol=2, align="h", common.legend = T, legend = "top", labels=c("A", "B"))
+bottom <- ggarrange(panel_c, panel_d, ncol=2, align="h", labels=c("C", "D"))
+ggarrange(top, bottom, nrow=2)
