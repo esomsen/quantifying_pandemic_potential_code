@@ -26,9 +26,8 @@ R0.CIs <- rbind(H1N1.CIs, H3N2.CIs) %>%
   merge(mean.R0s)
 
 panel_a <- ggplot(R0.CIs, aes(x=contact.nums, y=R0, ymin=lower, ymax=upper, fill=Subtype, color=Subtype, group=Subtype)) +
-  geom_point(size=3) +
-  geom_line(linewidth=1) + 
-  geom_ribbon(alpha=0.2) + 
+  geom_point(size=2) +
+  geom_errorbar() + 
   scale_color_manual(values = c(plot_colors[[1]], plot_colors[[2]])) + 
   scale_fill_manual(values = c(plot_colors[[1]], plot_colors[[2]])) +
   guides(fill="none", colour = guide_legend(override.aes = list(fill=NA,
@@ -115,6 +114,7 @@ panel_c <- ggplot(chain.lengths, aes(x=as.numeric(contact.nums), y=mu, color=Sub
   geom_point(size=3) +
   geom_line(linewidth=2) +
   scale_color_manual(values = c(plot_colors[[1]], plot_colors[[2]]), name="Virus") + 
+  scale_x_continuous(breaks=seq(5, 15, 5), limits=c(5, 15)) +
   scale_y_continuous(breaks=seq(0, 40, 5), limits=c(0, 37)) +
   guides(color="none") +
   labs(x="Average number of contacts per day", y="Average length of stuttering chain") +
@@ -139,8 +139,8 @@ find.growth.rate.gamma <- function(R, Tc){
 }
 
 ## results from the high contact rate simulation
-H1N1.Tc <- 3.781
-H3N2.Tc <- 3.488
+H1N1.Tc <- 3.787
+H3N2.Tc <- 3.496
 
 H1N1.growth.rates <- data.frame(Virus = rep("H1N1", length(H1N1.R0s[1,])), 
                                 exponential = find.growth.rate.exp(H1N1.R0s[1,], H1N1.Tc), 
@@ -165,15 +165,10 @@ panel_d <- ggplot(combined.growth.rates, aes(x=contact.rate, y=growth.rate, grou
   guides(color="none") +
   labs(x="Average number of contacts per day", y="Intrinsic growth rate") +
   theme_light() +
-  theme(legend.position= "inside", legend.position.inside = c(0.3, 0.8),
+  theme(legend.position= "inside", legend.position.inside = c(0.25, 0.8),
         legend.key.width = unit(4, "line"), legend.background = element_rect(fill = "white", color = "black"))
 
 # plot -------------------------------------------------------------------
-
-ggarrange(panel_a, panel_b, panel_c, panel_d, nrow=2, ncol=2, 
-          align = "v", common.legend = F, 
-          #legend = "bottom", 
-          labels=c("A", "B", "C", "D"))
 
 top <- ggarrange(panel_a, panel_b, ncol=2, align="h", common.legend = T, legend = "top", labels=c("A", "B"))
 bottom <- ggarrange(panel_c, panel_d, ncol=2, align="h", labels=c("C", "D"))
