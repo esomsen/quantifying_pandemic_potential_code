@@ -586,11 +586,13 @@ for (k in k_vals){
 }
 
 
-which(x==max(x,na.rm=T), arr.ind=T)
+which(H1N1.log.probs==max(H1N1.log.probs,na.rm=T), arr.ind=T)
+H1N1.log.probs[7,16,41]
+paste(k_vals[7], ka_vals[16], n_vals[41])
 
-H1N1.MLE <- prob.trace[which.max(H1N1.log.probs),1]
-H3N2.MLE <- prob.trace[which.max(H3N2.log.probs),1]
-
+which(H3N2.log.probs==max(H3N2.log.probs,na.rm=T), arr.ind=T)
+H3N2.log.probs[3,51,2]
+paste(k_vals[3], ka_vals[51], n_vals[2])
 
 
 # EXAMPLE PLOTS -----------------------------------------------------------
