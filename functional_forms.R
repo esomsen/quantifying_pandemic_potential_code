@@ -625,7 +625,7 @@ for (v in VLs){
 
 threshold.probs <- c()
 threshold.lambda <- c()
-s.threshold <- 0.3
+s.threshold <- 0.7
 h <- 4
 
 for (v in VLs){
@@ -640,9 +640,9 @@ for (v in VLs){
 
 hill.probs <- c()
 hill.lambda <- c()
-k <- 5
-ka <- 5
-n <- 3
+k <- 0.7
+ka <- 3.5
+n <- 13
 
 for (v in VLs){
   if (v < LOD){
@@ -655,7 +655,7 @@ for (v in VLs){
   }
 }
 
-linear.plot <- ggplot(data.frame(VL = VLs, 
+linear.prob.plot <- ggplot(data.frame(VL = VLs, 
                                  prob = linear.probs, 
                                  LOD = ifelse(VLs < LOD, "y", "n")), aes(x=VL, y=prob, color=LOD)) +
   geom_line(linewidth=2) +
@@ -665,7 +665,18 @@ linear.plot <- ggplot(data.frame(VL = VLs,
   labs(x=expression(paste("Viral titer (", TCID[50], "/mL)")), y="Probability of transmission") +
   theme_classic()
 
-log.plot <- ggplot(data.frame(VL = VLs, 
+linear.lambda.plot <- ggplot(data.frame(VL = VLs, 
+                                        lambda = linear.lambda, 
+                                        LOD = ifelse(VLs < LOD, "y", "n")), aes(x=VL, y=lambda, color=LOD)) +
+  geom_line(linewidth=2) +
+  scale_color_manual(values=c("black", "grey")) +
+  guides(color="none") +
+  scale_x_continuous(limits=c(0, 10), breaks = seq(0, 10, 2), labels=c(expression(10^0), expression(10^2), expression(10^4), expression(10^6), expression(10^8), expression(10^10))) +
+  labs(x=expression(paste("Viral titer (", TCID[50], "/mL)")), y="Force of infection", title="Linear") +
+  theme_classic() +
+  theme(plot.title = element_text(hjust = 0.5, face="bold"))
+
+log.prob.plot <- ggplot(data.frame(VL = VLs, 
                               prob = log.probs, 
                               LOD = ifelse(VLs < LOD, "y", "n")), aes(x=VL, y=prob, color=LOD)) +
   geom_line(linewidth=2) +
@@ -675,7 +686,18 @@ log.plot <- ggplot(data.frame(VL = VLs,
   labs(x=expression(paste("Viral titer (", TCID[50], "/mL)")), y="Probability of transmission") +
   theme_classic()
 
-threshold.plot <- ggplot(data.frame(VL = VLs, 
+log.lambda.plot <- ggplot(data.frame(VL = VLs, 
+                                     lambda = log.lambda, 
+                                     LOD = ifelse(VLs < LOD, "y", "n")), aes(x=VL, y=lambda, color=LOD)) +
+  geom_line(linewidth=2) +
+  scale_color_manual(values=c("black", "grey")) +
+  guides(color="none") +
+  scale_x_continuous(limits=c(0, 10), breaks = seq(0, 10, 2), labels=c(expression(10^0), expression(10^2), expression(10^4), expression(10^6), expression(10^8), expression(10^10))) +
+  labs(x=expression(paste("Viral titer (", TCID[50], "/mL)")), y="Force of infection", title="Log") +
+  theme_classic() +
+  theme(plot.title = element_text(hjust = 0.5, face="bold"))
+
+threshold.prob.plot <- ggplot(data.frame(VL = VLs, 
                                     prob = threshold.probs,
                                     LOD = ifelse(VLs < LOD, "y", "n")), aes(x=VL, y=prob, color=LOD)) +
   geom_line(linewidth=2) +
@@ -685,7 +707,18 @@ threshold.plot <- ggplot(data.frame(VL = VLs,
   labs(x=expression(paste("Viral titer (", TCID[50], "/mL)")), y="Probability of transmission") +
   theme_classic()
 
-hill.plot <- ggplot(data.frame(VL = VLs, 
+threshold.lambda.plot <- ggplot(data.frame(VL = VLs, 
+                                           lambda = threshold.lambda, 
+                                           LOD = ifelse(VLs < LOD, "y", "n")), aes(x=VL, y=lambda, color=LOD)) +
+  geom_line(linewidth=2) +
+  scale_color_manual(values=c("black", "grey")) +
+  guides(color="none") +
+  scale_x_continuous(limits=c(0, 10), breaks = seq(0, 10, 2), labels=c(expression(10^0), expression(10^2), expression(10^4), expression(10^6), expression(10^8), expression(10^10))) +
+  labs(x=expression(paste("Viral titer (", TCID[50], "/mL)")), y="Force of infection", title="Threshold") +
+  theme_classic() +
+  theme(plot.title = element_text(hjust = 0.5, face="bold"))
+
+hill.prob.plot <- ggplot(data.frame(VL = VLs, 
                                prob = hill.probs,
                                LOD = ifelse(VLs < LOD, "y", "n")), aes(x=VL, y=prob, color=LOD)) +
   geom_line(linewidth=2) +
@@ -695,5 +728,19 @@ hill.plot <- ggplot(data.frame(VL = VLs,
   labs(x=expression(paste("Viral titer (", TCID[50], "/mL)")), y="Probability of transmission") +
   theme_classic()
 
-ggarrange(linear.plot, log.plot, threshold.plot, hill.plot, ncol=4, labels=c("A", "B", "C", "D"))
+hill.lambda.plot <- ggplot(data.frame(VL = VLs, 
+                                      lambda = hill.lambda, 
+                                      LOD = ifelse(VLs < LOD, "y", "n")), aes(x=VL, y=lambda, color=LOD)) +
+  geom_line(linewidth=2) +
+  scale_color_manual(values=c("black", "grey")) +
+  guides(color="none") +
+  scale_x_continuous(limits=c(0, 10), breaks = seq(0, 10, 2), labels=c(expression(10^0), expression(10^2), expression(10^4), expression(10^6), expression(10^8), expression(10^10))) +
+  labs(x=expression(paste("Viral titer (", TCID[50], "/mL)")), y="Force of infection", title="Hill") +
+  theme_classic() +
+  theme(plot.title = element_text(hjust = 0.5, face="bold"))
 
+
+top <- ggarrange(linear.lambda.plot, log.lambda.plot, threshold.lambda.plot, hill.lambda.plot, ncol=4, labels=c("A", "B", "C", "D"))
+bottom <- ggarrange(linear.prob.plot, log.prob.plot, threshold.prob.plot, hill.prob.plot, ncol=4)
+
+ggarrange(top, bottom, nrow=2)
