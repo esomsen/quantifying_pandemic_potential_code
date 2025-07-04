@@ -301,8 +301,8 @@ calculate_pr_constant <- function(s, VL){
   return (prob)
 }
 
-VL_probs_H1N1 <- data.frame(log_VL = seq(0, 10, 0.1), 
-                            prob = rep(0, 101))
+VL_probs_H1N1 <- data.frame(log_VL = seq(0, 8, 0.1), 
+                            prob = rep(0, length(seq(0, 8, 0.1))))
 
 for (row in 1:nrow(VL_probs_H1N1)){
   slice <- VL_probs_H1N1[row,]
@@ -314,8 +314,8 @@ for (row in 1:nrow(VL_probs_H1N1)){
   VL_probs_H1N1$prob[row] <- prob
 }
 
-VL_probs_H3N2 <- data.frame(log_VL = seq(0, 10, 0.1), 
-                            prob = rep(0, 101))
+VL_probs_H3N2 <- data.frame(log_VL = seq(0, 8, 0.1), 
+                            prob = rep(0, length(seq(0, 8, 0.1))))
 for (row in 1:nrow(VL_probs_H3N2)){
   slice <- VL_probs_H3N2[row,]
   if (slice$log_VL > LOD){
@@ -331,9 +331,9 @@ combo_VL_pr <- combo_VL_pr %>%
   pivot_longer(-log_VL, names_to="virus", names_prefix = "prob.", values_to = "pr")
 
 ## now, calculate CIs for ribbon
-H1N1_ribbon <- data.frame(log_VL = seq(0, 10, 0.1), 
-                          prob_upper = rep(0, 101), 
-                          prob_lower = rep(0, 101))
+H1N1_ribbon <- data.frame(log_VL = seq(0, 8, 0.1), 
+                          prob_upper = rep(0, length(seq(0, 8, 0.1))), 
+                          prob_lower = rep(0, length(seq(0, 8, 0.1))))
 for (row in 1:nrow(H1N1_ribbon)){
   slice <- H1N1_ribbon[row,]
   if (slice$log_VL > LOD){
@@ -347,9 +347,9 @@ for (row in 1:nrow(H1N1_ribbon)){
   H1N1_ribbon$prob_lower[row] <- prob_lower
 }
 
-H3N2_ribbon <- data.frame(log_VL = seq(0, 10, 0.1), 
-                          prob_upper = rep(0, 101), 
-                          prob_lower = rep(0, 101))
+H3N2_ribbon <- data.frame(log_VL = seq(0, 8, 0.1), 
+                          prob_upper = rep(0, length(seq(0, 8, 0.1))), 
+                          prob_lower = rep(0, length(seq(0, 8, 0.1))))
 for (row in 1:nrow(H3N2_ribbon)){
   slice <- H3N2_ribbon[row,]
   if (slice$log_VL > LOD){
@@ -368,7 +368,7 @@ panel_b <- ggplot(combo_VL_pr, aes(x=log_VL, y=pr, color=virus)) +
   geom_ribbon(data=H1N1_ribbon, aes(x=log_VL, ymin=prob_lower, ymax=prob_upper), fill=plot_colors[[1]], alpha = 0.2, inherit.aes = F) +
   geom_ribbon(data=H3N2_ribbon, aes(x=log_VL, ymin=prob_lower, ymax=prob_upper), fill=plot_colors[[2]], alpha = 0.2, inherit.aes = F) +
   scale_color_manual(values = c(plot_colors[[1]], plot_colors[[2]])) + 
-  scale_x_continuous(limits=c(0, 7), breaks = seq(0, 7, 2), labels=c(expression(10^0), expression(10^2), expression(10^4), expression(10^6))) +
+  scale_x_continuous(limits=c(0, 8), breaks = seq(0, 8, 2), labels=c(expression(10^0), expression(10^2), expression(10^4), expression(10^6), expression(10^8))) +
   labs(x=expression(paste("Viral titer (", TCID[50], "/mL)")), y="Probability of transmission", color="Virus") +
   theme_light() +
   guides(color="none")
