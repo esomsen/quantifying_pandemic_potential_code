@@ -28,7 +28,7 @@ R0.CIs <- rbind(H1N1.CIs, H3N2.CIs) %>%
 panel_a <- ggplot(R0.CIs, aes(x=contact.nums, y=R0, ymin=lower, ymax=upper, fill=Subtype, color=Subtype, group=Subtype)) +
   geom_point(size=2) +
   geom_errorbar() + 
-  scale_color_manual(values = c(plot_colors[[1]], plot_colors[[2]])) + 
+  scale_color_manual(values = c(plot_colors[[1]], plot_colors[[2]]), labels=c("Cal/2009", "Hong Kong/1968")) + 
   scale_fill_manual(values = c(plot_colors[[1]], plot_colors[[2]])) +
   guides(fill="none", colour = guide_legend(override.aes = list(fill=NA,
                                                                 linetype=c(0,0)))) +
@@ -114,7 +114,7 @@ panel_c <- ggplot(chain.lengths, aes(x=as.numeric(contact.nums), y=mu, color=Sub
   geom_point(size=3) +
   geom_line(linewidth=2) +
   scale_color_manual(values = c(plot_colors[[1]], plot_colors[[2]]), name="Virus") + 
-  scale_x_continuous(breaks=seq(5, 15, 5), limits=c(5, 15)) +
+  scale_x_continuous(breaks=seq(5, 25, 5), limits=c(5, 25)) +
   scale_y_continuous(breaks=seq(0, 40, 5), limits=c(0, 37)) +
   guides(color="none") +
   labs(x="Average number of contacts per day", y="Average length of stuttering chain") +
@@ -138,9 +138,9 @@ find.growth.rate.gamma <- function(R, Tc){
   return(gamma.r)
 }
 
-## results from the high contact rate simulation
-H1N1.Tc <- 3.787
-H3N2.Tc <- 3.496
+## assume intermediate gen interval 
+H1N1.Tc <- 3.6
+H3N2.Tc <- 3.6
 
 H1N1.growth.rates <- data.frame(Virus = rep("H1N1", length(H1N1.R0s[1,])), 
                                 exponential = find.growth.rate.exp(H1N1.R0s[1,], H1N1.Tc), 
