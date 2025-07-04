@@ -1,6 +1,9 @@
 library(tidyverse)
 library(DescTools)
+library(khroma)
 library(ggpubr)
+
+plot_colors <- color("muted")(2)
 
 LOD <- 1
 
@@ -261,7 +264,62 @@ prob.trace <- data.frame(s = s_vals,
                          H3N2.pr = H3N2.log.probs)
 
 H1N1.MLE <- prob.trace[which.max(H1N1.log.probs),1]
+H1N1.MLE.logL <- prob.trace[which.max(H1N1.log.probs),2]
 H3N2.MLE <- prob.trace[which.max(H3N2.log.probs),1]
+H3N2.MLE.logL <- prob.trace[which.max(H3N2.log.probs),3] 
+
+H1N1.CIs <- prob.trace[near(prob.trace[which.max(H1N1.log.probs),2]-1.92, prob.trace$H1N1.pr, tol=0.5),1:2]
+H1N1.CIs <- H1N1.CIs[c(2,3),1]
+
+H3N2.CIs <- prob.trace[near(prob.trace[which.max(H3N2.log.probs),3]-1.92, prob.trace$H3N2.pr, tol=0.05),c(1,3)]
+H3N2.CIs <- H3N2.CIs[c(2,4),1]
+
+## plots
+
+VLs <- seq(0, 10, 0.1)
+LOD <- 1
+
+H1.linear.lambda <- c()
+H1.linear.probs <- c()
+H3.linear.lambda <- c()
+H3.linear.probs <- c()
+
+for (v in VLs){
+  if (v < LOD){
+    H1.linear.lambda <- append(H1.linear.lambda, 0)
+    H3.linear.lambda <- append(H3.linear.lambda, 0)
+    H1.linear.probs <- append(H1.linear.probs, 0)
+    H3.linear.probs <- append(H3.linear.probs, 0)
+  } else {
+    H1.linear.lambda <- append(H1.linear.lambda, AUC(x=c(0,1), y=c((10^v)*H1N1.MLE, (10^v)*H1N1.MLE), method="trapezoid"))
+    H3.linear.lambda <- append(H3.linear.lambda, AUC(x=c(0,1), y=c((10^v)*H3N2.MLE, (10^v)*H3N2.MLE), method="trapezoid"))
+    H1.linear.probs <- append(H1.linear.probs, (1 - exp(-AUC(x=c(0,1), y=c((10^v)*H1N1.MLE, (10^v)*H1N1.MLE), method="trapezoid"))))
+    H3.linear.probs <- append(H3.linear.probs, (1 - exp(-AUC(x=c(0,1), y=c((10^v)*H3N2.MLE, (10^v)*H3N2.MLE), method="trapezoid"))))
+  }
+}
+
+linear.lambdas <- data.frame(VL = VLs, 
+                             lambda = c(H1.linear.lambda, H3.linear.lambda), 
+                             Virus = c(rep("H1N1", length(VLs)), rep("H3N2", length(VLs))))
+
+linear.lambda.plot <- ggplot(linear.lambdas, aes(x=VL, y=lambda, color=Virus)) +
+  geom_line(linewidth=2) +
+  scale_color_manual(values = c(plot_colors[[1]], plot_colors[[2]]), labels=c("Cal/2009", "Hong Kong/1968")) + 
+  scale_x_continuous(limits=c(0, 10), breaks = seq(0, 10, 2), labels=c(expression(10^0), expression(10^2), expression(10^4), expression(10^6), expression(10^8), expression(10^10))) +
+  labs(x=expression(paste("Viral titer (", TCID[50], "/mL)")), y="Force of infection") +
+  theme_classic()
+
+linear.probs <- data.frame(VL = VLs, 
+                           prob = c(H1.linear.probs, H3.linear.probs), 
+                           Virus = c(rep("H1N1", length(VLs)), rep("H3N2", length(VLs))))
+
+linear.prob.plot <- ggplot(linear.probs, aes(x=VL, y=prob, color=Virus)) +
+  geom_line(linewidth=2) +
+  scale_color_manual(values = c(plot_colors[[1]], plot_colors[[2]]), labels=c("Cal/2009", "Hong Kong/1968")) + 
+  guides(color="none") +
+  scale_x_continuous(limits=c(0, 10), breaks = seq(0, 10, 2), labels=c(expression(10^0), expression(10^2), expression(10^4), expression(10^6), expression(10^8), expression(10^10))) +
+  labs(x=expression(paste("Viral titer (", TCID[50], "/mL)")), y="Probability of transmission") +
+  theme_classic()
 
 
 # THRESHOLD ---------------------------------------------------------------
@@ -414,26 +472,78 @@ for (s in s_vals){
 
 which(H1N1.joint.log.probs == max(H1N1.joint.log.probs), arr.ind=T)
 H1N1.MLE <- c("s" = s_vals[708], "h" = h_vals[284])
-H1N1.joint.log.probs[284,708]
+which(near(H1N1.joint.log.probs,H1N1.joint.log.probs[284,708]-1.92, tol=0.00008), arr.ind=T)
 
 which(H3N2.joint.log.probs == max(H3N2.joint.log.probs), arr.ind=T)
 H3N2.MLE <- c("s" = s_vals[118], "h" = h_vals[1])
 H3N2.joint.log.probs[1,118]
+
+## plots
+
+H1.threshold.lambda <- c()
+H1.threshold.probs <- c()
+H3.threshold.lambda <- c()
+H3.threshold.probs <- c()
+
+for (v in VLs){
+  if (v < H1N1.MLE["h"]){
+    H1.threshold.lambda <- append(H1.threshold.lambda, 0)
+    H1.threshold.probs <- append(H1.threshold.probs, 0)
+  } else {
+    H1.threshold.lambda <- append(H1.threshold.lambda, AUC(x=c(0, 1), y=c(H1N1.MLE["s"], H1N1.MLE["s"]), method="trapezoid"))
+    H1.threshold.probs <- append(H1.threshold.probs, (1 - exp(-AUC(x=c(0, 1), y=c(H1N1.MLE["s"], H1N1.MLE["s"]), method="trapezoid"))))
+  }
+}
+
+for (v in VLs){
+  if (v < H3N2.MLE["h"]){
+    H3.threshold.lambda <- append(H3.threshold.lambda, 0)
+    H3.threshold.probs <- append(H3.threshold.probs, 0)
+  } else {
+    H3.threshold.lambda <- append(H3.threshold.lambda, AUC(x=c(0, 1), y=c(H3N2.MLE["s"], H3N2.MLE["s"]), method="trapezoid"))
+    H3.threshold.probs <- append(H3.threshold.probs, (1 - exp(-AUC(x=c(0, 1), y=c(H3N2.MLE["s"], H3N2.MLE["s"]), method="trapezoid"))))
+  }
+}
+
+threshold.lambdas <- data.frame(VL = VLs, 
+                             lambda = c(H1.threshold.lambda, H3.threshold.lambda), 
+                             Virus = c(rep("H1N1", length(VLs)), rep("H3N2", length(VLs))))
+
+
+threshold.lambda.plot <- ggplot(threshold.lambdas, aes(x=VL, y=lambda, color=Virus)) +
+  geom_line(linewidth=2) +
+  scale_color_manual(values = c(plot_colors[[1]], plot_colors[[2]]), labels=c("Cal/2009", "Hong Kong/1968")) + 
+  scale_x_continuous(limits=c(0, 10), breaks = seq(0, 10, 2), labels=c(expression(10^0), expression(10^2), expression(10^4), expression(10^6), expression(10^8), expression(10^10))) +
+  labs(x=expression(paste("Viral titer (", TCID[50], "/mL)")), y="Force of infection") +
+  theme_classic()
+
+threshold.probs <- data.frame(VL = VLs, 
+                           prob = c(H1.threshold.probs, H3.threshold.probs), 
+                           Virus = c(rep("H1N1", length(VLs)), rep("H3N2", length(VLs))))
+
+threshold.prob.plot <- ggplot(threshold.probs, aes(x=VL, y=prob, color=Virus)) +
+  geom_line(linewidth=2) +
+  scale_color_manual(values = c(plot_colors[[1]], plot_colors[[2]]), labels=c("Cal/2009", "Hong Kong/1968")) + 
+  guides(color="none") +
+  scale_x_continuous(limits=c(0, 10), breaks = seq(0, 10, 2), labels=c(expression(10^0), expression(10^2), expression(10^4), expression(10^6), expression(10^8), expression(10^10))) +
+  labs(x=expression(paste("Viral titer (", TCID[50], "/mL)")), y="Probability of transmission") +
+  theme_classic()
+
 
 # HILL --------------------------------------------------------------------
 
 ## vector of times at which to calculate the integral
 times <- seq(0, 10, 0.1)
 ## range of parameter values to try
-k_vals <- seq(1, 10, 0.1)
+q_vals <- seq(1, 10, 0.1)
 ka_vals <- seq(1, 10, 0.1)
 n_vals <- seq(1, 10, 0.1)
 
 ## log prob tracker
-H1N1.log.probs <- array(data=NA, dim=c(length(k_vals), length(ka_vals), length(n_vals)))
+H1N1.log.probs <- array(data=NA, dim=c(length(q_vals), length(ka_vals), length(n_vals)))
 
 ## nested loop
-for (k in k_vals){
+for (q in q_vals){
   ## create vector to track prob of transmission
   tmp.probs <- c(rep(NA, length(H1N1_donor_names)))
   names(tmp.probs) <- H1N1_donor_names
@@ -466,7 +576,7 @@ for (k in k_vals){
             }
             ## Hill function
             tmp.theta <- (tmp.yvals)^n / (ka^n + (tmp.yvals)^n)
-            tmp.neg.integral <- AUC(tmp.neg.titers$time, tmp.theta*k, method="trapezoid")
+            tmp.neg.integral <- AUC(tmp.neg.titers$time, tmp.theta*q, method="trapezoid")
           }
           ## find integral from last neg to first positive test
           tmp.df <- H1N1.ferret.preds[[ferret]] %>%
@@ -479,7 +589,7 @@ for (k in k_vals){
             tmp.yvals[tmp.below_LOD] <- 0
           }
           tmp.theta <- (tmp.yvals)^n / (ka^n + (tmp.yvals)^n)
-          tmp.AUC <- AUC(tmp.df$time, tmp.theta*k, method="trapezoid")
+          tmp.AUC <- AUC(tmp.df$time, tmp.theta*q, method="trapezoid")
           ## find prob of getting infected between last neg and first pos test
           tmp.interval.prob <- 1 - exp(-tmp.AUC)
           ## overall prob is 
@@ -491,7 +601,7 @@ for (k in k_vals){
           ## when titer is at or below LOD, AUC is 0
           tmp.yvals[which(H1N1.ferret.preds[[ferret]]$titer < LOD)] <- 0
           tmp.theta <- (tmp.yvals)^n / (ka^n + (tmp.yvals)^n)
-          tmp.AUC <- AUC(H1N1.ferret.preds[[ferret]]$time, tmp.theta*k, method="trapezoid")
+          tmp.AUC <- AUC(H1N1.ferret.preds[[ferret]]$time, tmp.theta*q, method="trapezoid")
           tmp.prob <- exp(-tmp.AUC)
         }
         tmp.probs[ferret] <- tmp.prob
@@ -499,19 +609,19 @@ for (k in k_vals){
       ## replace any 0 prob with a very small number
       tmp.probs <- replace(tmp.probs, tmp.probs==0, 2.225074e-308)
       tmp.sum.prs <- sum(log(tmp.probs))
-      ## for each k value, record likelihood of all ka and n values
-      H1N1.log.probs[[which(k_vals == k), which(ka_vals == ka), which(n_vals == n)]] <- tmp.sum.prs
+      ## for each q value, record likelihood of all ka and n values
+      H1N1.log.probs[[which(q_vals == q), which(ka_vals == ka), which(n_vals == n)]] <- tmp.sum.prs
     }
     }
   rm(list=ls(pattern="^tmp"))
-  print(paste("Round", k, "done"))
+  print(paste("Round", q, "done"))
 }  
 
 ## log prob tracker
-H3N2.log.probs <- array(data=NA, dim=c(length(k_vals), length(ka_vals), length(n_vals)))
+H3N2.log.probs <- array(data=NA, dim=c(length(q_vals), length(ka_vals), length(n_vals)))
 
 ## nested loop
-for (k in k_vals){
+for (q in q_vals){
   ## create vector to track prob of transmission
   tmp.probs <- c(rep(NA, length(H3N2_donor_names)))
   names(tmp.probs) <- H3N2_donor_names
@@ -544,7 +654,7 @@ for (k in k_vals){
             }
             ## Hill function
             tmp.theta <- (tmp.yvals)^n / (ka^n + (tmp.yvals)^n)
-            tmp.neg.integral <- AUC(tmp.neg.titers$time, tmp.theta*k, method="trapezoid")
+            tmp.neg.integral <- AUC(tmp.neg.titers$time, tmp.theta*q, method="trapezoid")
           }
           ## find integral from last neg to first positive test
           tmp.df <- H3N2.ferret.preds[[ferret]] %>%
@@ -557,7 +667,7 @@ for (k in k_vals){
             tmp.yvals[tmp.below_LOD] <- 0
           }
           tmp.theta <- (tmp.yvals)^n / (ka^n + (tmp.yvals)^n)
-          tmp.AUC <- AUC(tmp.df$time, tmp.theta*k, method="trapezoid")
+          tmp.AUC <- AUC(tmp.df$time, tmp.theta*q, method="trapezoid")
           ## find prob of getting infected between last neg and first pos test
           tmp.interval.prob <- 1 - exp(-tmp.AUC)
           ## overall prob is 
@@ -569,7 +679,7 @@ for (k in k_vals){
           ## when titer is at or below LOD, AUC is 0
           tmp.yvals[which(H3N2.ferret.preds[[ferret]]$titer < LOD)] <- 0
           tmp.theta <- (tmp.yvals)^n / (ka^n + (tmp.yvals)^n)
-          tmp.AUC <- AUC(H3N2.ferret.preds[[ferret]]$time, tmp.theta*k, method="trapezoid")
+          tmp.AUC <- AUC(H3N2.ferret.preds[[ferret]]$time, tmp.theta*q, method="trapezoid")
           tmp.prob <- exp(-tmp.AUC)
         }
         tmp.probs[ferret] <- tmp.prob
@@ -577,170 +687,120 @@ for (k in k_vals){
       ## replace any 0 prob with a very small number
       tmp.probs <- replace(tmp.probs, tmp.probs==0, 2.225074e-308)
       tmp.sum.prs <- sum(log(tmp.probs))
-      ## for each k value, record likelihood of all ka and n values
-      H3N2.log.probs[[which(k_vals == k), which(ka_vals == ka), which(n_vals == n)]] <- tmp.sum.prs
+      ## for each q value, record likelihood of all ka and n values
+      H3N2.log.probs[[which(q_vals == q), which(ka_vals == ka), which(n_vals == n)]] <- tmp.sum.prs
     }
   }
   rm(list=ls(pattern="^tmp"))
-  print(paste("Round", k, "done"))
+  print(paste("Round", q, "done"))
 }
 
-
+## note that these index values are different than the code listed above
+## because they were rerun for more precise estimates
 which(H1N1.log.probs==max(H1N1.log.probs,na.rm=T), arr.ind=T)
 H1N1.log.probs[7,16,41]
-paste(k_vals[7], ka_vals[16], n_vals[41])
+H1N1.MLE <- c("q" = q_vals[7], "ka" = ka_vals[16], "n" = n_vals[41])
 
 which(H3N2.log.probs==max(H3N2.log.probs,na.rm=T), arr.ind=T)
 H3N2.log.probs[3,51,2]
-paste(k_vals[3], ka_vals[51], n_vals[2])
+H3N2.MLE <- c("q" = q_vals[3], "ka" = ka_vals[51], "n"= n_vals[2])
 
+## plots
 
-# EXAMPLE PLOTS -----------------------------------------------------------
-
-
-VLs <- seq(0, 10, 0.1)
-LOD <- 1
-
-s.log <- 0.1
-s.linear <- 0.000001
-
-log.probs <- c()
-log.lambda <- c()
-linear.probs <- c()
-linear.lambda <- c()
+H1.hill.lambda <- c()
+H1.hill.probs <- c()
+H3.hill.lambda <- c()
+H3.hill.probs <- c()
 
 for (v in VLs){
   if (v < LOD){
-    linear.probs <- append(linear.probs, 0)
-    linear.lambda <- append(linear.lambda, 0)
-    log.probs <- append(log.probs, 0)
-    log.lambda <- append(log.lambda, 0)
+    H1.hill.lambda <- append(H1.hill.lambda, 0)
+    H1.hill.probs <- append(H1.hill.probs, 0)
+    H3.hill.lambda <- append(H3.hill.lambda, 0)
+    H3.hill.probs <- append(H3.hill.probs, 0)
   } else {
-    linear.probs <- append(linear.probs, (1 - exp(-AUC(x=c(0,1), y=c((10^v)*s.linear, (10^v)*s.linear), method="trapezoid"))))
-    linear.lambda <- append(linear.lambda, AUC(x=c(0,1), y=c((10^v)*s.linear, (10^v)*s.linear), method="trapezoid"))
-    log.probs <- append(log.probs, (1 - exp(-AUC(x=c(0,1), y=c(v*s.log, v*s.log), method="trapezoid"))))
-    log.lambda <- append(log.lambda, AUC(x=c(0,1), y=c(v*s.log, v*s.log), method="trapezoid"))
+    H1.theta <- v^H1N1.MLE["n"] / ((H1N1.MLE["ka"]^H1N1.MLE["n"]) + v^H1N1.MLE["n"])
+    H1.hill.lambda <- append(H1.hill.lambda, AUC(x=c(0, 1), y=c(H1N1.MLE["q"]*H1.theta, H1N1.MLE["q"]*H1.theta), method="trapezoid"))
+    H1.hill.probs <- append(H1.hill.probs, 1 - exp(-AUC(x=c(0, 1), y=c(H1N1.MLE["q"]*H1.theta, H1N1.MLE["q"]*H1.theta), method="trapezoid")))
+    
+    H3.theta <- v^H3N2.MLE["n"] / ((H3N2.MLE["ka"]^H3N2.MLE["n"]) + v^H3N2.MLE["n"])
+    H3.hill.lambda <- append(H3.hill.lambda, AUC(x=c(0, 1), y=c(H3N2.MLE["q"]*H3.theta, H3N2.MLE["q"]*H3.theta), method="trapezoid"))
+    H3.hill.probs <- append(H3.hill.probs, 1 - exp(-AUC(x=c(0, 1), y=c(H3N2.MLE["q"]*H3.theta, H3N2.MLE["q"]*H3.theta), method="trapezoid")))
   }
 }
 
-threshold.probs <- c()
-threshold.lambda <- c()
-s.threshold <- 0.7
-h <- 4
+hill.lambdas <- data.frame(VL = VLs, 
+                                lambda = c(H1.hill.lambda, H3.hill.lambda), 
+                                Virus = c(rep("H1N1", length(VLs)), rep("H3N2", length(VLs))))
 
-for (v in VLs){
-  if (v < h){
-    threshold.probs <- append(threshold.probs, 0)
-    threshold.lambda <- append(threshold.lambda, 0)
-  } else {
-    threshold.probs <- append(threshold.probs, (1 - exp(-AUC(x=c(0, 1), y=c(s.threshold, s.threshold), method="trapezoid"))))
-    threshold.lambda <- append(threshold.lambda, AUC(x=c(0, 1), y=c(s.threshold, s.threshold), method="trapezoid"))
-  }
-}
 
-hill.probs <- c()
-hill.lambda <- c()
-k <- 0.7
-ka <- 3.5
-n <- 13
+hill.lambda.plot <- ggplot(hill.lambdas, aes(x=VL, y=lambda, color=Virus)) +
+  geom_line(linewidth=2) +
+  scale_color_manual(values = c(plot_colors[[1]], plot_colors[[2]]), labels=c("Cal/2009", "Hong Kong/1968")) + 
+  scale_x_continuous(limits=c(0, 10), breaks = seq(0, 10, 2), labels=c(expression(10^0), expression(10^2), expression(10^4), expression(10^6), expression(10^8), expression(10^10))) +
+  labs(x=expression(paste("Viral titer (", TCID[50], "/mL)")), y="Force of infection") +
+  theme_classic()
+
+hill.probs <- data.frame(VL = VLs, 
+                              prob = c(H1.hill.probs, H3.hill.probs), 
+                              Virus = c(rep("H1N1", length(VLs)), rep("H3N2", length(VLs))))
+
+hill.prob.plot <- ggplot(hill.probs, aes(x=VL, y=prob, color=Virus)) +
+  geom_line(linewidth=2) +
+  scale_color_manual(values = c(plot_colors[[1]], plot_colors[[2]]), labels=c("Cal/2009", "Hong Kong/1968")) + 
+  guides(color="none") +
+  scale_x_continuous(limits=c(0, 10), breaks = seq(0, 10, 2), labels=c(expression(10^0), expression(10^2), expression(10^4), expression(10^6), expression(10^8), expression(10^10))) +
+  labs(x=expression(paste("Viral titer (", TCID[50], "/mL)")), y="Probability of transmission") +
+  theme_classic()
+
+
+# all plots ---------------------------------------------------------------
+
+H1.log.lambda <- c()
+H1.log.probs <- c()
+H3.log.lambda <- c()
+H3.log.probs <- c()
 
 for (v in VLs){
   if (v < LOD){
-    hill.probs <- append(hill.probs, 0)
-    hill.lambda <- append(hill.lambda, 0)
+    H1.log.lambda <- append(H1.log.lambda, 0)
+    H3.log.lambda <- append(H3.log.lambda, 0)
+    H1.log.probs <- append(H1.log.probs, 0)
+    H3.log.probs <- append(H3.log.probs, 0)
   } else {
-    theta <- v^n / ((ka^n) + v^n)
-    hill.probs <- append(hill.probs, 1 - exp(-AUC(x=c(0, 1), y=c(k*theta, k*theta), method="trapezoid")))
-    hill.lambda <- append(hill.lambda, AUC(x=c(0, 1), y=c(k*theta, k*theta), method="trapezoid"))
+    H1.log.lambda <- append(H1.log.lambda, AUC(x=c(0,1), y=c(v*0.111, v*0.111), method="trapezoid"))
+    H3.log.lambda <- append(H3.log.lambda, AUC(x=c(0,1), y=c(v*0.047, v*0.047), method="trapezoid"))
+    H1.log.probs <- append(H1.log.probs, (1 - exp(-AUC(x=c(0,1), y=c(v*0.111, v*0.111), method="trapezoid"))))
+    H3.log.probs <- append(H3.log.probs, (1 - exp(-AUC(x=c(0,1), y=c(v*0.047, v*0.047), method="trapezoid"))))
   }
 }
 
-linear.prob.plot <- ggplot(data.frame(VL = VLs, 
-                                 prob = linear.probs, 
-                                 LOD = ifelse(VLs < LOD, "y", "n")), aes(x=VL, y=prob, color=LOD)) +
+log.lambdas <- data.frame(VL = VLs, 
+                             lambda = c(H1.log.lambda, H3.log.lambda), 
+                             Virus = c(rep("H1N1", length(VLs)), rep("H3N2", length(VLs))))
+
+log.lambda.plot <- ggplot(log.lambdas, aes(x=VL, y=lambda, color=Virus)) +
   geom_line(linewidth=2) +
-  scale_color_manual(values=c("black", "grey")) +
+  scale_color_manual(values = c(plot_colors[[1]], plot_colors[[2]]), labels=c("Cal/2009", "Hong Kong/1968")) + 
+  scale_x_continuous(limits=c(0, 10), breaks = seq(0, 10, 2), labels=c(expression(10^0), expression(10^2), expression(10^4), expression(10^6), expression(10^8), expression(10^10))) +
+  labs(x=expression(paste("Viral titer (", TCID[50], "/mL)")), y="Force of infection") +
+  theme_classic()
+
+log.probs <- data.frame(VL = VLs, 
+                           prob = c(H1.log.probs, H3.log.probs), 
+                           Virus = c(rep("H1N1", length(VLs)), rep("H3N2", length(VLs))))
+
+log.prob.plot <- ggplot(log.probs, aes(x=VL, y=prob, color=Virus)) +
+  geom_line(linewidth=2) +
+  scale_color_manual(values = c(plot_colors[[1]], plot_colors[[2]]), labels=c("Cal/2009", "Hong Kong/1968")) + 
   guides(color="none") +
   scale_x_continuous(limits=c(0, 10), breaks = seq(0, 10, 2), labels=c(expression(10^0), expression(10^2), expression(10^4), expression(10^6), expression(10^8), expression(10^10))) +
   labs(x=expression(paste("Viral titer (", TCID[50], "/mL)")), y="Probability of transmission") +
   theme_classic()
 
-linear.lambda.plot <- ggplot(data.frame(VL = VLs, 
-                                        lambda = linear.lambda, 
-                                        LOD = ifelse(VLs < LOD, "y", "n")), aes(x=VL, y=lambda, color=LOD)) +
-  geom_line(linewidth=2) +
-  scale_color_manual(values=c("black", "grey")) +
-  guides(color="none") +
-  scale_x_continuous(limits=c(0, 10), breaks = seq(0, 10, 2), labels=c(expression(10^0), expression(10^2), expression(10^4), expression(10^6), expression(10^8), expression(10^10))) +
-  labs(x=expression(paste("Viral titer (", TCID[50], "/mL)")), y="Force of infection", title="Linear") +
-  theme_classic() +
-  theme(plot.title = element_text(hjust = 0.5, face="bold"))
+top <- ggarrange(log.lambda.plot, linear.lambda.plot, threshold.lambda.plot, hill.lambda.plot, ncol=4, 
+          common.legend = T, legend = "bottom", labels=c("A", "B", "C", "D"))
+bottom <- ggarrange(log.prob.plot, linear.prob.plot, threshold.prob.plot, hill.prob.plot, ncol=4, 
+          labels = c("E", "F", "G", "H"))
 
-log.prob.plot <- ggplot(data.frame(VL = VLs, 
-                              prob = log.probs, 
-                              LOD = ifelse(VLs < LOD, "y", "n")), aes(x=VL, y=prob, color=LOD)) +
-  geom_line(linewidth=2) +
-  scale_color_manual(values=c("black", "grey")) +
-  guides(color="none") +
-  scale_x_continuous(limits=c(0, 10), breaks = seq(0, 10, 2), labels=c(expression(10^0), expression(10^2), expression(10^4), expression(10^6), expression(10^8), expression(10^10))) +
-  labs(x=expression(paste("Viral titer (", TCID[50], "/mL)")), y="Probability of transmission") +
-  theme_classic()
-
-log.lambda.plot <- ggplot(data.frame(VL = VLs, 
-                                     lambda = log.lambda, 
-                                     LOD = ifelse(VLs < LOD, "y", "n")), aes(x=VL, y=lambda, color=LOD)) +
-  geom_line(linewidth=2) +
-  scale_color_manual(values=c("black", "grey")) +
-  guides(color="none") +
-  scale_x_continuous(limits=c(0, 10), breaks = seq(0, 10, 2), labels=c(expression(10^0), expression(10^2), expression(10^4), expression(10^6), expression(10^8), expression(10^10))) +
-  labs(x=expression(paste("Viral titer (", TCID[50], "/mL)")), y="Force of infection", title="Log") +
-  theme_classic() +
-  theme(plot.title = element_text(hjust = 0.5, face="bold"))
-
-threshold.prob.plot <- ggplot(data.frame(VL = VLs, 
-                                    prob = threshold.probs,
-                                    LOD = ifelse(VLs < LOD, "y", "n")), aes(x=VL, y=prob, color=LOD)) +
-  geom_line(linewidth=2) +
-  scale_color_manual(values=c("black", "grey")) +
-  guides(color="none") +
-  scale_x_continuous(limits=c(0, 10), breaks = seq(0, 10, 2), labels=c(expression(10^0), expression(10^2), expression(10^4), expression(10^6), expression(10^8), expression(10^10))) +
-  labs(x=expression(paste("Viral titer (", TCID[50], "/mL)")), y="Probability of transmission") +
-  theme_classic()
-
-threshold.lambda.plot <- ggplot(data.frame(VL = VLs, 
-                                           lambda = threshold.lambda, 
-                                           LOD = ifelse(VLs < LOD, "y", "n")), aes(x=VL, y=lambda, color=LOD)) +
-  geom_line(linewidth=2) +
-  scale_color_manual(values=c("black", "grey")) +
-  guides(color="none") +
-  scale_x_continuous(limits=c(0, 10), breaks = seq(0, 10, 2), labels=c(expression(10^0), expression(10^2), expression(10^4), expression(10^6), expression(10^8), expression(10^10))) +
-  labs(x=expression(paste("Viral titer (", TCID[50], "/mL)")), y="Force of infection", title="Threshold") +
-  theme_classic() +
-  theme(plot.title = element_text(hjust = 0.5, face="bold"))
-
-hill.prob.plot <- ggplot(data.frame(VL = VLs, 
-                               prob = hill.probs,
-                               LOD = ifelse(VLs < LOD, "y", "n")), aes(x=VL, y=prob, color=LOD)) +
-  geom_line(linewidth=2) +
-  scale_color_manual(values=c("black", "grey")) +
-  guides(color="none") +
-  scale_x_continuous(limits=c(0, 10), breaks = seq(0, 10, 2), labels=c(expression(10^0), expression(10^2), expression(10^4), expression(10^6), expression(10^8), expression(10^10))) +
-  labs(x=expression(paste("Viral titer (", TCID[50], "/mL)")), y="Probability of transmission") +
-  theme_classic()
-
-hill.lambda.plot <- ggplot(data.frame(VL = VLs, 
-                                      lambda = hill.lambda, 
-                                      LOD = ifelse(VLs < LOD, "y", "n")), aes(x=VL, y=lambda, color=LOD)) +
-  geom_line(linewidth=2) +
-  scale_color_manual(values=c("black", "grey")) +
-  guides(color="none") +
-  scale_x_continuous(limits=c(0, 10), breaks = seq(0, 10, 2), labels=c(expression(10^0), expression(10^2), expression(10^4), expression(10^6), expression(10^8), expression(10^10))) +
-  labs(x=expression(paste("Viral titer (", TCID[50], "/mL)")), y="Force of infection", title="Hill") +
-  theme_classic() +
-  theme(plot.title = element_text(hjust = 0.5, face="bold"))
-
-
-top <- ggarrange(linear.lambda.plot, log.lambda.plot, threshold.lambda.plot, hill.lambda.plot, ncol=4, labels=c("A", "B", "C", "D"))
-bottom <- ggarrange(linear.prob.plot, log.prob.plot, threshold.prob.plot, hill.prob.plot, ncol=4)
-
-ggarrange(top, bottom, nrow=2)
+ggarrange(top, bottom, nrow=2, common.legend = T, legend="bottom")
