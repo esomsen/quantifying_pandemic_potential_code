@@ -210,4 +210,4 @@ H1N1 <- ggarrange(p_10.0, p_10.1, p_10.2, spacer, p_10.4, p_10.6,
           legend = "none",
           vjust=-.1)
 
-H1N1 <- annotate_figure(H1N1, left = text_grob(expression(paste("Viral titer (", TCID[50],"/mL", ")")), rot = 90), bottom = "Days post exposure", top="H1N1")
+H1N1 <- annotate_figure(H1N1, left = text_grob(expression(paste("Viral titer (", TCID[50],"/mL", ")")), rot = 90), bottom = "Days post exposure", top="Cal/2009")

@@ -243,6 +243,6 @@ H3N2 <- ggarrange(p_10.0, p_10.1, p_10.2, p_10.3, p_10.4, p_10.6,
                   vjust=-.1,
                   legend = "none")
 
-H3N2 <- annotate_figure(H3N2, left = text_grob(expression(paste("Viral titer (", TCID[50], "/mL", ")")), rot = 90), bottom = "Days post exposure", top="H3N2")
+H3N2 <- annotate_figure(H3N2, left = text_grob(expression(paste("Viral titer (", TCID[50], "/mL", ")")), rot = 90), bottom = "Days post exposure", top="Hong Kong/1968")
 
 ggarrange(H1N1, H3N2, ncol=2)
