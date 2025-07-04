@@ -355,13 +355,13 @@ t.test(H1N1.negb.fits[2,], H3N2.negb.fits[2,], alternative = "two.sided")
 
 panel_e <- ggplot(mu.vals, aes(x=mu, fill=Virus, color=Virus)) +
   geom_density(alpha=0.7) +
-  scale_fill_manual(values = plot_colors) +
-  scale_color_manual(values = plot_colors) +
+  scale_fill_manual(values = plot_colors, labels=c("Cal/2009", "Hong Kong/1968")) +
+  scale_color_manual(values = plot_colors, labels=c("Cal/2009", "Hong Kong/1968")) +
   xlim(0, 4) +
   labs(x=expression(paste("Basic reproductive number ", R[0])), y="Density") +
   theme_light() +
-  theme(legend.position= "inside", legend.position.inside = c(0.8, 0.6), 
-        legend.key.size = unit(1, "cm"), legend.title = element_text(size=16), legend.text = element_text(size=12))
+  theme(legend.position= "inside", legend.position.inside = c(0.8, 0.8), 
+        legend.key.size = unit(0.8, "cm"), legend.title = element_text(size=12), legend.text = element_text(size=10))
 
 ## plot k cumulative density
 
