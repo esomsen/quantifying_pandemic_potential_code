@@ -10,22 +10,22 @@ mean.R0s <- data.frame(contact.nums = contact.nums,
                        H1N1 = H1N1.R0s[1,], 
                        H3N2 = H3N2.R0s[1,])
 mean.R0s <- mean.R0s %>%
-  pivot_longer(cols=2:3, names_to = "Subtype", values_to = "R0")
+  pivot_longer(cols=2:3, names_to = "Virus", values_to = "R0")
 
 ## calculate 95% confidence intervals
 H1N1.CIs <- data.frame(contact.nums = contact.nums,
                   lower = H1N1.R0s[2,], 
                   upper = H1N1.R0s[3,], 
-                  Subtype = "H1N1")
+                  Virus = "H1N1")
 H3N2.CIs <- data.frame(contact.nums = contact.nums,
                        lower = H3N2.R0s[2,], 
                        upper = H3N2.R0s[3,], 
-                       Subtype = "H3N2")
+                       Virus = "H3N2")
 
 R0.CIs <- rbind(H1N1.CIs, H3N2.CIs) %>%
   merge(mean.R0s)
 
-panel_a <- ggplot(R0.CIs, aes(x=contact.nums, y=R0, ymin=lower, ymax=upper, fill=Subtype, color=Subtype, group=Subtype)) +
+panel_a <- ggplot(R0.CIs, aes(x=contact.nums, y=R0, ymin=lower, ymax=upper, fill=Virus, color=Virus, group=Virus)) +
   geom_point(size=2) +
   geom_errorbar() + 
   scale_color_manual(values = c(plot_colors[[1]], plot_colors[[2]]), labels=c("Cal/2009", "Hong Kong/1968")) + 
