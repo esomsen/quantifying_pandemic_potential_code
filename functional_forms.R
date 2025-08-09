@@ -488,52 +488,96 @@ for (s in s_vals){
   print(paste("Round", s, "done"))
 }  
 
+## note that the index numbers may not match as they were rerun
 which(H1N1.joint.log.probs == max(H1N1.joint.log.probs), arr.ind=T)
 H1N1.MLE <- c("s" = s_vals[708], "h" = h_vals[284])
-which(near(H1N1.joint.log.probs,H1N1.joint.log.probs[284,708]-1.92, tol=0.00008), arr.ind=T)
+## find profile CIs for h
+which(near(H1N1.joint.log.probs[1:284,708], -18.79404, tol=0.05), arr.ind=T)
+which(near(H1N1.joint.log.probs[285:601,708], -18.79404, tol=0.2), arr.ind=T)
+## and for r
+which(near(H1N1.joint.log.probs[284,1:708], -18.79404, tol=0.05), arr.ind=T)
+which(near(H1N1.joint.log.probs[284,708:1000], -18.79404, tol=0.5), arr.ind=T)
 
 which(H3N2.joint.log.probs == max(H3N2.joint.log.probs), arr.ind=T)
 H3N2.MLE <- c("s" = s_vals[118], "h" = h_vals[1])
 H3N2.joint.log.probs[1,118]
+## find profile CIs for h
+which(near(H3N2.joint.log.probs[1:601,118], -31.0836, tol=0.5), arr.ind=T)
+## and for r
+which(near(H3N2.joint.log.probs[1,1:118], -31.0836, tol=0.3), arr.ind=T)
+which(near(H3N2.joint.log.probs[1,118:1000], -31.0836, tol=0.5), arr.ind=T)
 
-## plots
-
+## plotting FOI, prob of transmission with 95% CIs
+VLs <- seq(0, 8, 0.1)
+## for H1N1
 H1.threshold.lambda <- c()
 H1.threshold.probs <- c()
-H1.threshold.lower <- c()
-H1.threshold.upper <- c()
-H3.threshold.lambda <- c()
-H3.threshold.probs <- c()
-H3.threshold.lower <- c()
-H3.threshold.upper <- c()
-
 for (v in VLs){
   if (v < 3.83){
     H1.threshold.lambda <- append(H1.threshold.lambda, 0)
     H1.threshold.probs <- append(H1.threshold.probs, 0)
-    H1.threshold.lower <- append(H1.threshold.lower, 0)
-    H1.threshold.upper <- append(H1.threshold.upper, 0)
   } else {
     H1.threshold.lambda <- append(H1.threshold.lambda, AUC(x=c(0, 1), y=c(0.708, 0.708), method="trapezoid"))
     H1.threshold.probs <- append(H1.threshold.probs, (1 - exp(-AUC(x=c(0, 1), y=c(0.708, 0.708), method="trapezoid"))))
-    H1.threshold.lower <- append(H1.threshold.lower, (1 - exp(-AUC(x=c(0, 1), y=c(0.426, 0.426), method="trapezoid"))))
-    H1.threshold.upper <- append(H1.threshold.upper, (1 - exp(-AUC(x=c(0, 1), y=c(1.112, 1.112), method="trapezoid"))))
   }
 }
+## CIs
+df <- as.data.frame(which(H1N1.joint.log.probs > -18.79404, arr.ind=T))
+colnames(df) <- c("h", "s")
+H1N1.results <- matrix(data=NA, ncol=length(VLs), nrow=nrow(df))
+for (e in 1:nrow(df)){
+  vector <- c()
+  for (v in VLs){
+    if (v < h_vals[df[e,"h"]]){
+      vector <- append(vector, 0)
+    } else{
+      vector <- append(vector, (1 - exp(-AUC(x=c(0, 1), y=rep(s_vals[df[e,"s"]], 2), method="trapezoid"))))
+    }
+  }
+  H1N1.results[e,] <- vector
+}
+## highest value
+which.max(H1N1.results[,81])
+df[83244,]
+## lowest value
+which.min(H1N1.results[,81])
+df[1,]
 
+
+## for H3N2
+H3.threshold.lambda <- c()
+H3.threshold.probs <- c()
 for (v in VLs){
   if (v < 1){
     H3.threshold.lambda <- append(H3.threshold.lambda, 0)
     H3.threshold.probs <- append(H3.threshold.probs, 0)
-    H3.threshold.lower <- append(H3.threshold.lower, 0)
-    H3.threshold.upper <- append(H3.threshold.upper, 0)
   } else {
     H3.threshold.lambda <- append(H3.threshold.lambda, AUC(x=c(0, 1), y=c(0.118, 0.118), method="trapezoid"))
     H3.threshold.probs <- append(H3.threshold.probs, (1 - exp(-AUC(x=c(0, 1), y=c(0.118, 0.118), method="trapezoid"))))
-    H3.threshold.lower <- append(H3.threshold.lower, (1 - exp(-AUC(x=c(0, 1), y=c(0.06, 0.06), method="trapezoid"))))
-    H3.threshold.upper <- append(H3.threshold.upper, (1 - exp(-AUC(x=c(0, 1), y=c(0.207, 0.207), method="trapezoid"))))
   }
 }
+## CIs
+df <- as.data.frame(which(H3N2.joint.log.probs > -31.0836, arr.ind=T))
+colnames(df) <- c("h", "s")
+H3N2.results <- matrix(data=NA, ncol=length(VLs), nrow=nrow(df))
+for (e in 1:nrow(df)){
+  vector <- c()
+  for (v in VLs){
+    if (v < h_vals[df[e,"h"]]){
+      vector <- append(vector, 0)
+    } else{
+      vector <- append(vector, (1 - exp(-AUC(x=c(0, 1), y=rep(s_vals[df[e,"s"]], 2), method="trapezoid"))))
+    }
+  }
+  H3N2.results[e,] <- vector
+}
+## highest value
+which.max(H3N2.results[,81])
+df[2669,]
+## lowest value
+which.min(H3N2.results[,81])
+df[1,]
+
 
 threshold.lambdas <- data.frame(VL = VLs, 
                              lambda = c(H1.threshold.lambda, H3.threshold.lambda), 
@@ -548,10 +592,10 @@ threshold.lambda.plot <- ggplot(threshold.lambdas, aes(x=VL, y=lambda, color=Vir
   theme_classic()
 
 threshold.probs <- data.frame(VL = VLs, 
-                           prob = c(H1.threshold.probs, H3.threshold.probs), 
-                           lower = c(H1.threshold.lower, H3.threshold.lower), 
-                           upper = c(H1.threshold.upper, H3.threshold.upper),
-                           Virus = c(rep("H1N1", length(VLs)), rep("H3N2", length(VLs))))
+                              prob = c(H1.threshold.probs, H3.threshold.probs), 
+                              lower = c(H1N1.results[1,], H3N2.results[1,]), 
+                              upper = c(H1N1.results[83244,], H3N2.results[2669,]), 
+                              Virus = c(rep("H1N1", length(VLs)), rep("H3N2", length(VLs))))
 
 threshold.prob.plot <- ggplot(threshold.probs, aes(x=VL, y=prob, color=Virus)) +
   geom_line(linewidth=2) +
@@ -561,7 +605,7 @@ threshold.prob.plot <- ggplot(threshold.probs, aes(x=VL, y=prob, color=Virus)) +
   guides(color="none", fill="none", alpha="none") +
   scale_x_continuous(limits=c(0, 8), breaks = seq(0, 8, 2), labels=c(expression(10^0), expression(10^2), expression(10^4), expression(10^6), expression(10^8))) +
   scale_y_continuous(limits=c(0, 1)) +
-  labs(x=expression(paste("Viral titer (", TCID[50], "/mL)")), y="Probability of transmission") +
+  labs(x=expression(paste("Viral titer (", TCID[50], "/mL)")), y="Probability of transmission", title="Just max and min") +
   theme_classic()
 
 
@@ -733,8 +777,19 @@ for (q in q_vals){
 ## note that these index values are different than the code listed above
 ## because they were rerun for more precise estimates
 which(H1N1.log.probs==max(H1N1.log.probs,na.rm=T), arr.ind=T)
-H1N1.log.probs[7,17,111]
-H1N1.MLE <- c("q" = q_vals[7], "ka" = ka_vals[17], "n" = n_vals[111])
+H1N1.log.probs[5,19,28]
+H1N1.MLE <- c("q" = q_vals[5], "ka" = ka_vals[19], "n" = n_vals[28])
+## find profile CIs for q
+which(near(H1N1.log.probs[1:5,19,28], -18.93822, tol=1), arr.ind=T)
+which(near(H1N1.log.probs[5:10,19,28], -18.93822, tol=1.5), arr.ind=T)
+## and for ka
+which(near(H1N1.log.probs[5,1:19,28], -18.93822, tol=1), arr.ind=T)
+which(near(H1N1.log.probs[5,19:31,28], -18.93822, tol=2), arr.ind=T)
+## and for n
+which(near(H1N1.log.probs[5,19,1:28], -18.93822, tol=0.3), arr.ind=T)
+which(near(H1N1.log.probs[5,9,30:52], -18.93822, tol=1.5), arr.ind=T)
+
+
 
 which(H3N2.log.probs==max(H3N2.log.probs,na.rm=T), arr.ind=T)
 H3N2.log.probs[3,51,2]
