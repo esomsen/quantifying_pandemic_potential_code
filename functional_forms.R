@@ -328,6 +328,10 @@ for (v in VLs){
   }
 }
 
+## for plotting purposes
+H1.linear.lambda.upper <- replace(H1.linear.lambda.upper, which(H1.linear.lambda.upper > 3), 3)
+H3.linear.lambda.upper <- replace(H3.linear.lambda.upper, which(H3.linear.lambda.upper > 3), 3)
+
 linear.lambdas <- data.frame(VL = VLs, 
                              lambda = c(H1.linear.lambda, H3.linear.lambda),
                              lower = c(H1.linear.lambda.lower, H3.linear.lambda.lower), 
