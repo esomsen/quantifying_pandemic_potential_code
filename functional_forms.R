@@ -277,32 +277,51 @@ H3N2.uCI <- s_vals[349]
 VLs <- seq(0, 8, 0.1)
 
 H1.linear.lambda <- c()
+H1.linear.lambda.lower <- c()
+H1.linear.lambda.upper <- c()
 H1.linear.probs <- c()
 H1.linear.lower <- c()
 H1.linear.upper <- c()
+
+for (v in VLs){
+  if (v < LOD){
+    H1.linear.lambda <- append(H1.linear.lambda, 0)
+    H1.linear.lambda.lower <- append(H1.linear.lambda.lower, 0)
+    H1.linear.lambda.upper <- append(H1.linear.lambda.upper, 0)
+    
+    H1.linear.probs <- append(H1.linear.probs, 0)
+    H1.linear.lower <- append(H1.linear.lower, 0)
+    H1.linear.upper <- append(H1.linear.upper, 0)
+  } else {
+    H1.linear.lambda <- append(H1.linear.lambda, AUC(x=c(0,1), y=rep((10^v)*H1N1.MLE, 2), method="trapezoid"))
+    H1.linear.lambda.lower <- append(H1.linear.lambda.lower, AUC(x=c(0,1), y=rep((10^v)*H1N1.lCI, 2), method="trapezoid"))
+    H1.linear.lambda.upper <- append(H1.linear.lambda.upper, AUC(x=c(0,1), y=rep((10^v)*H1N1.uCI, 2), method="trapezoid"))
+    
+    H1.linear.probs <- append(H1.linear.probs, (1 - exp(-AUC(x=c(0,1), y=rep((10^v)*H1N1.MLE, 2), method="trapezoid"))))
+    H1.linear.lower <- append(H1.linear.lower, (1 - exp(-AUC(x=c(0,1), y=rep((10^v)*H1N1.lCI, 2), method="trapezoid"))))
+    H1.linear.upper <- append(H1.linear.upper, (1 - exp(-AUC(x=c(0,1), y=rep((10^v)*H1N1.uCI, 2), method="trapezoid"))))
+  }
+}
+
 H3.linear.lambda <- c()
+H3.linear.lambda.lower <- c()
+H3.linear.lambda.upper <- c()
 H3.linear.probs <- c()
 H3.linear.lower <- c()
 H3.linear.upper <- c()
 
 for (v in VLs){
   if (v < LOD){
-    H1.linear.lambda <- append(H1.linear.lambda, 0)
     H3.linear.lambda <- append(H3.linear.lambda, 0)
-    H1.linear.probs <- append(H1.linear.probs, 0)
-    H1.linear.lower <- append(H1.linear.lower, 0)
-    H1.linear.upper <- append(H1.linear.upper, 0)
+    H3.linear.lambda.lower <- append(H3.linear.lambda.lower, 0)
+    H3.linear.lambda.upper <- append(H3.linear.lambda.upper, 0)
     H3.linear.probs <- append(H3.linear.probs, 0)
     H3.linear.lower <- append(H3.linear.lower, 0)
     H3.linear.upper <- append(H3.linear.upper, 0)
   } else {
-    H1.linear.lambda <- append(H1.linear.lambda, AUC(x=c(0,1), y=rep((10^v)*H1N1.MLE, 2), method="trapezoid"))
     H3.linear.lambda <- append(H3.linear.lambda, AUC(x=c(0,1), y=rep((10^v)*H3N2.MLE, 2), method="trapezoid"))
-    
-    H1.linear.probs <- append(H1.linear.probs, (1 - exp(-AUC(x=c(0,1), y=rep((10^v)*H1N1.MLE, 2), method="trapezoid"))))
-    H1.linear.lower <- append(H1.linear.lower, (1 - exp(-AUC(x=c(0,1), y=rep((10^v)*H1N1.lCI, 2), method="trapezoid"))))
-    H1.linear.upper <- append(H1.linear.upper, (1 - exp(-AUC(x=c(0,1), y=rep((10^v)*H1N1.uCI, 2), method="trapezoid"))))
-    
+    H3.linear.lambda.lower <- append(H3.linear.lambda.lower, AUC(x=c(0,1), y=rep((10^v)*H3N2.lCI, 2), method="trapezoid"))
+    H3.linear.lambda.upper <- append(H3.linear.lambda.upper, AUC(x=c(0,1), y=rep((10^v)*H3N2.uCI, 2), method="trapezoid"))
     H3.linear.probs <- append(H3.linear.probs, (1 - exp(-AUC(x=c(0,1), y=rep((10^v)*H3N2.MLE, 2), method="trapezoid"))))
     H3.linear.lower <- append(H3.linear.lower, (1 - exp(-AUC(x=c(0,1), y=rep((10^v)*H3N2.lCI, 2), method="trapezoid"))))
     H3.linear.upper <- append(H3.linear.upper, (1 - exp(-AUC(x=c(0,1), y=rep((10^v)*H3N2.uCI, 2), method="trapezoid"))))
@@ -310,12 +329,17 @@ for (v in VLs){
 }
 
 linear.lambdas <- data.frame(VL = VLs, 
-                             lambda = c(H1.linear.lambda, H3.linear.lambda), 
+                             lambda = c(H1.linear.lambda, H3.linear.lambda),
+                             lower = c(H1.linear.lambda.lower, H3.linear.lambda.lower), 
+                             upper = c(H3.linear.lambda.upper, H3.linear.lambda.upper),
                              Virus = c(rep("H1N1", length(VLs)), rep("H3N2", length(VLs))))
 
 linear.lambda.plot <- ggplot(linear.lambdas, aes(x=VL, y=lambda, color=Virus)) +
   geom_line(linewidth=2) +
+  geom_ribbon(aes(ymin=lower, ymax=upper, fill=Virus, alpha=0.3)) +
   scale_color_manual(values = c(plot_colors[[1]], plot_colors[[2]]), labels=c("Cal/2009", "Hong Kong/1968")) + 
+  scale_fill_manual(values = c(plot_colors[[1]], plot_colors[[2]]), labels=c("Cal/2009", "Hong Kong/1968")) + 
+  guides(color="none", fill="none", alpha="none") +
   scale_x_continuous(limits=c(0, 8), breaks = seq(0, 8, 2), labels=c(expression(10^0), expression(10^2), expression(10^4), expression(10^6), expression(10^8))) +
   scale_y_continuous(limits=c(0, 3)) +
   labs(x=expression(paste("Viral titer (", TCID[50], "/mL)")), y="Force of infection") +
@@ -506,7 +530,6 @@ which(near(H3N2.joint.log.probs[1,118:1000], -31.0836, tol=0.5), arr.ind=T)
 
 ## plotting FOI, prob of transmission with 95% CIs
 VLs <- seq(0, 8, 0.1)
-## for H1N1
 H1.threshold.lambda <- c()
 H1.threshold.probs <- c()
 for (v in VLs){
@@ -518,6 +541,7 @@ for (v in VLs){
     H1.threshold.probs <- append(H1.threshold.probs, (1 - exp(-AUC(x=c(0, 1), y=c(0.708, 0.708), method="trapezoid"))))
   }
 }
+## for H1N1
 ## CIs
 df <- as.data.frame(which(H1N1.joint.log.probs > -18.79404, arr.ind=T))
 colnames(df) <- c("h", "s")
@@ -537,7 +561,9 @@ for (e in 1:nrow(df)){
 H1.threshold.uCI <- apply(H1N1.results, 2, max)
 ## find lowest value in each column
 H1.threshold.lCI <- apply(H1N1.results, 2, min)
-
+## lambda CIs 
+H1.threshold.lambda.uCI <- -log(-H1.threshold.uCI +1)
+H1.threshold.lambda.lCI <- -log(-H1.threshold.lCI +1)
 
 ## for H3N2
 H3.threshold.lambda <- c()
@@ -570,17 +596,25 @@ for (e in 1:nrow(df)){
 H3.threshold.uCI <- apply(H3N2.results, 2, max)
 ## find lowest value in each column
 H3.threshold.lCI <- apply(H3N2.results, 2, min)
+## lambda CIs 
+H3.threshold.lambda.uCI <- -log(-H3.threshold.uCI +1)
+H3.threshold.lambda.lCI <- -log(-H3.threshold.lCI +1)
 
 
 threshold.lambdas <- data.frame(VL = VLs, 
                              lambda = c(H1.threshold.lambda, H3.threshold.lambda), 
+                             lower = c(H1.threshold.lambda.lCI, H3.threshold.lambda.lCI), 
+                             upper = c(H1.threshold.lambda.uCI, H3.threshold.lambda.uCI), 
                              Virus = c(rep("H1N1", length(VLs)), rep("H3N2", length(VLs))))
 
 threshold.lambda.plot <- ggplot(threshold.lambdas, aes(x=VL, y=lambda, color=Virus)) +
   geom_line(linewidth=2) +
+  geom_ribbon(aes(ymin=lower, ymax=upper, fill=Virus, alpha=0.3)) +
   scale_color_manual(values = c(plot_colors[[1]], plot_colors[[2]]), labels=c("Cal/2009", "Hong Kong/1968")) + 
+  scale_fill_manual(values = c(plot_colors[[1]], plot_colors[[2]]), labels=c("Cal/2009", "Hong Kong/1968")) + 
+  guides(color="none", fill="none", alpha="none") +
   scale_x_continuous(limits=c(0, 8), breaks = seq(0, 8, 2), labels=c(expression(10^0), expression(10^2), expression(10^4), expression(10^6), expression(10^8))) +
-  scale_y_continuous(limits=c(0, 1)) +
+  scale_y_continuous(limits=c(0, 3)) +
   labs(x=expression(paste("Viral titer (", TCID[50], "/mL)")), y="Force of infection") +
   theme_classic()
 
@@ -795,7 +829,7 @@ which(near(H3N2.log.probs[5,,28], -31.09032, tol=0.1), arr.ind=T)
 which(near(H3N2.log.probs[5,1001,1:4], -31.09032, tol=1), arr.ind=T)
 which(near(H1N1.log.probs[5,1001,4:50], -31.09032, tol=1.5), arr.ind=T)
 
-## plot FOI, prob of transmission with CIs
+## plot FOI, prob of transmission
 VLs <- seq(0, 8, 0.1)
 H1.hill.lambda <- c()
 H1.hill.probs <- c()
@@ -819,7 +853,7 @@ for (v in VLs){
     H3.hill.probs <- append(H3.hill.probs, 1 - exp(-AUC(x=c(0, 1), y=c(0.3*H3.theta, 0.3*H3.theta), method="trapezoid")))
   }
 }
-## CIs
+## CIs for H1N1
 df <- as.data.frame(which(H1N1.log.probs > -18.93822, arr.ind=T))
 colnames(df) <- c("q", "ka", "n")
 H1N1.results <- matrix(data=NA, ncol=length(VLs), nrow=nrow(df))
@@ -829,7 +863,11 @@ for (e in 1:nrow(df)){
     if (v < LOD){
       vector <- append(vector, 0)
     } else{
-      theta <- v^n_vals[df[e,"n"]] / ((ka_vals[df[e,"ka"]]^n_vals[df[e,"n"]]) + v^n_vals[df[e,"n"]])
+      if (v^n_vals[df[e,"n"]] == Inf){ ## if theta becomes too large to calculate, just use a large number
+        theta <- 1e308 / ((ka_vals[df[e,"ka"]]^n_vals[df[e,"n"]]) + 1e308) 
+      } else{
+        theta <- v^n_vals[df[e,"n"]] / ((ka_vals[df[e,"ka"]]^n_vals[df[e,"n"]]) + v^n_vals[df[e,"n"]]) 
+      }
       vector <- append(vector, (1 - exp(-AUC(x=c(0, 1), y=rep(q_vals[df[e,"q"]]*theta, 2), method="trapezoid"))))
     }
   }
@@ -839,25 +877,61 @@ for (e in 1:nrow(df)){
 H1.hill.uCI <- apply(H1N1.results, 2, max)
 ## find lowest value in each column
 H1.hill.lCI <- apply(H1N1.results, 2, min)
+## lambda CIs 
+H1.hill.lambda.uCI <- -log(-H1.hill.uCI +1)
+H1.hill.lambda.lCI <- -log(-H1.hill.lCI +1)
+
+## CIs for H3N2
+df <- as.data.frame(which(H3N2.log.probs > -31.09032, arr.ind=T))
+colnames(df) <- c("q", "ka", "n")
+H3N2.results <- matrix(data=NA, ncol=length(VLs), nrow=nrow(df))
+for (e in 1:nrow(df)){
+  vector <- c()
+  for (v in VLs){
+    if (v < LOD){
+      vector <- append(vector, 0)
+    } else{
+      if (v^n_vals[df[e,"n"]] == Inf){ ## if theta becomes too large to calculate, just use a large number
+        theta <- 1e308 / ((ka_vals[df[e,"ka"]]^n_vals[df[e,"n"]]) + 1e308) 
+      } else{
+        theta <- v^n_vals[df[e,"n"]] / ((ka_vals[df[e,"ka"]]^n_vals[df[e,"n"]]) + v^n_vals[df[e,"n"]]) 
+      }
+      vector <- append(vector, (1 - exp(-AUC(x=c(0, 1), y=rep(q_vals[df[e,"q"]]*theta, 2), method="trapezoid"))))
+    }
+  }
+  H3N2.results[e,] <- vector
+}
+## find highest value in each column
+H3.hill.uCI <- apply(H3N2.results, 2, max)
+## find lowest value in each column
+H3.hill.lCI <- apply(H3N2.results, 2, min)
+## lambda CIs 
+H3.hill.lambda.uCI <- -log(-H3.hill.uCI +1)
+H3.hill.lambda.lCI <- -log(-H3.hill.lCI +1)
 
 
-hill.lambdas <- data.frame(VL = VLs, 
-                                lambda = c(H1.hill.lambda, H3.hill.lambda), 
-                                Virus = c(rep("H1N1", length(VLs)), rep("H3N2", length(VLs))))
+hill.lambdas <- data.frame(VL = VLs,
+                           lambda = c(H1.hill.lambda, H3.hill.lambda),
+                           lower = c(H1.hill.lambda.lCI, H3.hill.lambda.lCI), 
+                           upper = c(H1.hill.lambda.uCI, H3.hill.lambda.uCI), 
+                           Virus = c(rep("H1N1", length(VLs)), rep("H3N2", length(VLs))))
 
 
 hill.lambda.plot <- ggplot(hill.lambdas, aes(x=VL, y=lambda, color=Virus)) +
   geom_line(linewidth=2) +
+  geom_ribbon(aes(ymin=lower, ymax=upper, fill=Virus, alpha=0.3)) +
   scale_color_manual(values = c(plot_colors[[1]], plot_colors[[2]]), labels=c("Cal/2009", "Hong Kong/1968")) + 
+  scale_fill_manual(values = c(plot_colors[[1]], plot_colors[[2]]), labels=c("Cal/2009", "Hong Kong/1968")) + 
+  guides(color="none", fill="none", alpha="none") +
   scale_x_continuous(limits=c(0, 8), breaks = seq(0, 8, 2), labels=c(expression(10^0), expression(10^2), expression(10^4), expression(10^6), expression(10^8))) +
-  scale_y_continuous(limits=c(0, 10)) +
+  scale_y_continuous(limits=c(0, 3)) +
   labs(x=expression(paste("Viral titer (", TCID[50], "/mL)")), y="Force of infection") +
   theme_classic()
 
 hill.probs <- data.frame(VL = VLs, 
                          prob = c(H1.hill.probs, H3.hill.probs),
-                         lower = c(H1.hill.lower, H3.hill.lower),
-                         upper = c(H1.hill.upper, H3.hill.upper),
+                         lower = c(H1.hill.lCI, H3.hill.lCI),
+                         upper = c(H1.hill.uCI, H3.hill.uCI),
                           Virus = c(rep("H1N1", length(VLs)), rep("H3N2", length(VLs))))
 
 hill.prob.plot <- ggplot(hill.probs, aes(x=VL, y=prob, color=Virus)) +
@@ -906,14 +980,24 @@ for (v in VLs){
     H3.log.upper <- append(H3.log.upper, (1 - exp(-AUC(x=c(0,1), y=rep(v*0.082, 2), method="trapezoid"))))
   }
 }
+## lambda CIs
+H1.log.lambda.lower <- -log(-H1.log.lower +1)
+H1.log.lambda.upper <- -log(-H1.log.upper +1)
+H3.log.lambda.lower <- -log(-H3.log.lower +1)
+H3.log.lambda.upper <- -log(-H3.log.upper +1)
 
-log.lambdas <- data.frame(VL = VLs, 
-                             lambda = c(H1.log.lambda, H3.log.lambda), 
-                             Virus = c(rep("H1N1", length(VLs)), rep("H3N2", length(VLs))))
+log.lambdas <- data.frame(VL = VLs,
+                          lambda = c(H1.log.lambda, H3.log.lambda),
+                          lower = c(H1.log.lambda.lower, H3.log.lambda.lower), 
+                          upper = c(H1.log.lambda.upper, H3.log.lambda.upper),
+                          Virus = c(rep("H1N1", length(VLs)), rep("H3N2", length(VLs))))
 
 log.lambda.plot <- ggplot(log.lambdas, aes(x=VL, y=lambda, color=Virus)) +
   geom_line(linewidth=2) +
+  geom_ribbon(aes(ymin=lower, ymax=upper, fill=Virus, alpha=0.3)) +
   scale_color_manual(values = c(plot_colors[[1]], plot_colors[[2]]), labels=c("Cal/2009", "Hong Kong/1968")) + 
+  scale_fill_manual(values = c(plot_colors[[1]], plot_colors[[2]]), labels=c("Cal/2009", "Hong Kong/1968")) + 
+  guides(color="none", fill="none", alpha="none") +
   scale_x_continuous(limits=c(0, 8), breaks = seq(0, 8, 2), labels=c(expression(10^0), expression(10^2), expression(10^4), expression(10^6), expression(10^8))) +
   scale_y_continuous(limits=c(0, 3)) +
   labs(x=expression(paste("Viral titer (", TCID[50], "/mL)")), y="Force of infection") +
