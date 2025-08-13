@@ -4,10 +4,10 @@ In this manuscript, we aimed to extract more information from transmission exper
 
 The R files "H1N1.titers" and "H3N2.titers" visualize this data and are shown in the manuscript as Figure 1. 
 
-The R file "functional_forms" tests the linear, threshold, and Hill functional forms, and visualizes their relationship to the probability of transmission for given parameterizations. 
+The R file "functional_forms" tests the linear, threshold, and Hill functional forms, and visualizes their relationship to the probability of transmission for given parameterizations, shown in Figure 3.
 
 The R file "MLE" runs a maximum likelihood estimation for "s" (the log functional form) for both H1N1 and H3N2. This is shown in the manuscript as Figure 2.
 
-The R file "assessing_pandemic_potential" runs the analyses shown in Figure 3. 
+The R file "assessing_pandemic_potential" runs the analyses shown in Figure 4. 
 
-The "Epi_characteristics_experiment" folder contains the R files "generation_time_simulation" and "invasion_dynamics". The "generation_time_simulation" file estimates the generation times for H1N1 and H3N2 assuming a high contact rate, as described in the methods. The "invasion_dynamics" file runs the analyses shown in Figure 4, and uses the results from the high contact simulations for panel D (the values are hard coded). 
+The "Epi_characteristics_experiment" folder contains the R files "generation_time_simulation" and "invasion_dynamics". The "generation_time_simulation" file estimates the generation times for H1N1 and H3N2 assuming a high contact rate, as described in the methods. The "invasion_dynamics" file runs the analyses shown in Figure 5, and uses the results from the high contact simulations for panel D (the values are hard coded). 
