@@ -184,6 +184,18 @@ panel_c <- ggplot(as.data.frame(H1N1.gen.times[,14]), aes(x=H1N1.gen.times[, 14]
 
 length(which(H1N1.negb.fits[1,] <= 1))
 
+## fit gamma distribution to all generation time estimates for each it
+H1N1.gamma.fits <- matrix(data=NA, nrow=2, ncol=its)
+for (i in 1:its){
+ tmp.gamma.dist <- fitdist(H1N1.gen.times[,i][!is.na(H1N1.gen.times[,i])], "gamma", "mle")
+ ## mean
+ H1N1.gamma.fits[1,i] <- tmp.gamma.dist$estimate[["shape"]] / tmp.gamma.dist$estimate[["rate"]]
+ ## coefficient of variation
+ H1N1.gamma.fits[2,i] <- 1 / sqrt(tmp.gamma.dist$estimate[["shape"]])
+ ## tidy environment
+ rm(list=ls(pattern="^tmp"))
+}
+
 # H3N2 analysis -----------------------------------------------------------
 
 H3N2_ferrets <- read_csv("H3N2_raw_titer_data.csv", col_names = T, show_col_types = F)
@@ -342,6 +354,24 @@ panel_d <- ggplot(as.data.frame(H3N2.gen.times[,4]), aes(x=H3N2.gen.times[,4])) 
 
 length(which(H3N2.negb.fits[1,] <= 1))
 
+## fit gamma distribution to all generation time estimates for each it
+H3N2.gamma.fits <- matrix(data=NA, nrow=2, ncol=its)
+for (i in 1:its){
+  if (length(H3N2.gen.times[,i][!is.na(H3N2.gen.times[,i])]) > 1){
+  tmp.gamma.dist <- fitdist(H3N2.gen.times[,i][!is.na(H3N2.gen.times[,i])], "gamma", "mle")
+  ## mean
+  H3N2.gamma.fits[1,i] <- tmp.gamma.dist$estimate[["shape"]] / tmp.gamma.dist$estimate[["rate"]]
+  ## coefficient of variation
+  H3N2.gamma.fits[2,i] <- 1 / sqrt(tmp.gamma.dist$estimate[["shape"]])
+  } else if (length(H3N2.gen.times[,i][!is.na(H3N2.gen.times[,i])]) == 1){
+    H3N2.gamma.fits[1,i] <- H3N2.gen.times[,i][!is.na(H3N2.gen.times[,i])]
+    H3N2.gamma.fits[2,i] <- 0
+  }
+  ## tidy environment
+  rm(list=ls(pattern="^tmp"))
+}
+
+
 # joint plots -------------------------------------------------------------
 
 ## plot mu distribution and test significance 
@@ -390,29 +420,20 @@ panel_f <- ggplot(k.vals, aes(x=k, y=prop, color=Virus)) +
   theme_light() +
   theme(legend.position = "none")
 
-## plot generation intervals and test significance
+## plot scatter of gamma mean and cov
+gamma.mean.cov <- data.frame(mean = c(H1N1.gamma.fits[1,], H3N2.gamma.fits[1,]),
+                             cov = c(H1N1.gamma.fits[2,], H3N2.gamma.fits[2,]), 
+                             Virus = c(rep("H1N1", ncol(H1N1.gamma.fits)), rep("H3N2", ncol(H3N2.gamma.fits))))
 
-H1N1.Tc <- c(H1N1.gen.times)[!is.na(c(H1N1.gen.times))]
-H3N2.Tc <- c(H3N2.gen.times)[!is.na(c(H3N2.gen.times))]
-Tc.values <- data.frame(Tc = c(H1N1.Tc, H3N2.Tc), 
-                        Virus = c(rep("H1N1", length(H1N1.Tc)), rep("H3N2", length(H3N2.Tc))))
-
-t.test(H1N1.Tc, H3N2.Tc, altnervative="two.sided")
-
-## add line segments so kernel density isn't misleading at 0
-H1.zero.dens <- data.frame(x1 = 0, x2=0, y1=0, y2=0.039)
-H3.zero.dens <- data.frame(x1 = 0, x2=0, y1=0, y2=0.025)
-
-panel_g <- ggplot(Tc.values, aes(x=Tc, color=Virus)) +
-  geom_density(linewidth=2) +
-  geom_segment(data=H3.zero.dens, aes(x=x1, y=y1, xend=x2, yend=y2, color=plot_colors[2]), linewidth=2) +
-  geom_segment(data=H1.zero.dens, aes(x=x1, y=y1, xend=x2, yend=y2, color=plot_colors[1]), linewidth=2) +
-  scale_color_manual(values = c(plot_colors, plot_colors)) +
-  scale_x_continuous(breaks = seq(0, 12, 2), limits=c(0, 12)) +
-  labs(x=expression(paste("Mean generation time ", T[c], " (days)")), y="Density") + 
+panel_g <- ggplot(gamma.mean.cov, aes(x=mean, y=cov, color=Virus)) +
+  geom_point(size=1, alpha=0.7) +
+  geom_point(aes(x=3.34, y=0.68), color="#44AA99", size=2) +
+  scale_color_manual(values = plot_colors) +
+  scale_x_continuous(breaks = seq(0, 8, 2), limits=c(0, 8)) +
+  scale_y_continuous(breaks = seq(0, 1.5, 0.5), limits=c(0, 1.5)) +
+  labs(x=expression(paste("Mean generation time ", T[c], " (days)")), y="Coefficient of variation") + 
   theme_light() +
   theme(legend.position = "none")
-
 
 ## all plots
 
@@ -421,3 +442,10 @@ top <- ggarrange(panel_a, panel_b, panel_c, panel_d, ncol=4, labels=c("A", "B", 
 bottom <- ggarrange(panel_e, panel_f, panel_g, ncol=3, labels=c("E", "F", "G"), align="h", common.legend = F, widths = c(2, 1, 1))
 
 ggarrange(top, bottom, nrow=2, align="v")
+
+
+H1N1.gamma.fits[1,][H1N1.gamma.fits[1,] > 3 & H1N1.gamma.fits[1,] < 4]
+which(H1N1.gamma.fits[1,] > 3 & H1N1.gamma.fits[1,] < 4)
+right.mean <- H1N1.gamma.fits[,which(H1N1.gamma.fits[1,] > 3 & H1N1.gamma.fits[1,] < 4)]
+right.cov <- right.mean[,which(right.mean[2,] > 0.5 & right.mean[2,] < 0.75)]
+right.cov[,65]
