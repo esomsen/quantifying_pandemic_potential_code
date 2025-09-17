@@ -122,51 +122,25 @@ panel_c <- ggplot(chain.lengths, aes(x=as.numeric(contact.nums), y=mu, color=Sub
 
 # intrinsic growth rate ---------------------------------------------------
 
-find.growth.rate.exp <- function(R, Tc){
-  exponential.r <- (R-1) / Tc
-  return(exponential.r)
-}
-
-find.growth.rate.delta <- function(R, Tc){
-  delta.r <- log(R) / Tc
-  return(delta.r)
-}
-
-## using n=5
-find.growth.rate.gamma <- function(R, Tc){
-  gamma.r <- (5/Tc)*R^(1/5) - (5/Tc)
+## params chosen from Fig 4G
+find.growth.rate.gamma <- function(R, alpha=2.18, lambda=0.65){
+  gamma.r <- lambda * (R^(1/alpha) - 1)
   return(gamma.r)
 }
 
-## assume intermediate gen interval 
-H1N1.Tc <- 3.6
-H3N2.Tc <- 3.6
+H1N1.growth.rate <- find.growth.rate.gamma(H1N1.R0s[1,])
+H3N2.growth.rate <- find.growth.rate.gamma(H3N2.R0s[1,])
+combined.growth.rates <- data.frame(Virus = c(rep("H1N1", length(contact.nums)), rep("H3N2", length(contact.nums))),
+                                    contact.rate = c(contact.nums, contact.nums),
+                                    rate = c(H1N1.growth.rate, H3N2.growth.rate))
 
-H1N1.growth.rates <- data.frame(Virus = rep("H1N1", length(H1N1.R0s[1,])), 
-                                exponential = find.growth.rate.exp(H1N1.R0s[1,], H1N1.Tc), 
-                                delta = find.growth.rate.delta(H1N1.R0s[1,], H1N1.Tc), 
-                                gamma = find.growth.rate.gamma(H1N1.R0s[1,], H1N1.Tc),
-                                contact.rate = contact.nums)
-H3N2.growth.rates <- data.frame(Virus = rep("H3N2", length(H3N2.R0s[1,])), 
-                                exponential = find.growth.rate.exp(H3N2.R0s[1,], H3N2.Tc), 
-                                delta = find.growth.rate.delta(H3N2.R0s[1,], H3N2.Tc), 
-                                gamma = find.growth.rate.gamma(H3N2.R0s[1,], H3N2.Tc),
-                                contact.rate = contact.nums)
-
-combined.growth.rates <- rbind(H1N1.growth.rates, H3N2.growth.rates)
-
-combined.growth.rates <- combined.growth.rates %>%
-  pivot_longer(cols=2:4, values_to="growth.rate", names_to="dist")
-
-panel_d <- ggplot(combined.growth.rates, aes(x=contact.rate, y=growth.rate, group=interaction(Virus, dist), color=Virus, linetype=dist)) +
+panel_d <- ggplot(combined.growth.rates, aes(x=contact.rate, y=rate, color=Virus)) +
+  geom_point(size=3) +
   geom_line(linewidth=2) +
   scale_color_manual(values = c(plot_colors[[1]], plot_colors[[2]])) + 
-  scale_linetype_manual(values = c(2, 3, 1), name="Distribution") +
   guides(color="none") +
   labs(x="Average number of contacts per day", y="Intrinsic growth rate") +
-  theme_light() +
-  theme(legend.position= "inside", legend.position.inside = c(0.25, 0.8),
-        legend.key.width = unit(4, "line"), legend.background = element_rect(fill = "white", color = "black"))
+  theme_light()
 
 # plot -------------------------------------------------------------------
 
