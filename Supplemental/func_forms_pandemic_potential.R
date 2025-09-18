@@ -428,6 +428,7 @@ gamma.mean.cov <- data.frame(mean = c(H1N1.gamma.fits[1,], H3N2.gamma.fits[1,]),
 
 panel_g <- ggplot(gamma.mean.cov, aes(x=mean, y=cov, color=Virus)) +
   geom_point(size=1, alpha=0.7) +
+  geom_point(aes(x=2.85, y=0.30), color="#44AA99", size=2) +
   scale_color_manual(values = plot_colors) +
   scale_x_continuous(breaks = seq(0, 10, 2), limits=c(0, 10)) +
   scale_y_continuous(breaks = seq(0, 1.5, 0.5), limits=c(0, 1.5)) +
@@ -689,12 +690,10 @@ for (i in 1:its){
   rm(list=ls(pattern="^tmp"))
 }
 
-## plot mu distribution and test significance 
+## plot mu distribution
 
 mu.vals <- data.frame(mu = c(c(H1N1.negb.fits[2,]), c(H3N2.negb.fits[2,])), 
                       Virus = c(rep("H1N1", its), rep("H3N2", its)))
-H1N1.mean.mu <- mean(H1N1.negb.fits[2,])
-H3N2.mean.mu <- mean(H3N2.negb.fits[2,])
 
 panel_e <- ggplot(mu.vals, aes(x=mu, fill=Virus, color=Virus)) +
   geom_density(alpha=0.7) +
@@ -740,6 +739,7 @@ gamma.mean.cov <- data.frame(mean = c(H1N1.gamma.fits[1,], H3N2.gamma.fits[1,]),
 
 panel_g <- ggplot(gamma.mean.cov, aes(x=mean, y=cov, color=Virus)) +
   geom_point(size=1, alpha=0.7) +
+  geom_point(aes(x=3.57, y=0.47), color="#44AA99", size=2) +
   scale_color_manual(values = plot_colors) +
   scale_x_continuous(breaks = seq(0, 10, 2), limits=c(0, 10)) +
   scale_y_continuous(breaks = seq(0, 1.5, 0.5), limits=c(0, 1.5)) +
@@ -1063,6 +1063,7 @@ gamma.mean.cov <- data.frame(mean = c(H1N1.gamma.fits[1,], H3N2.gamma.fits[1,]),
 
 panel_g <- ggplot(gamma.mean.cov, aes(x=mean, y=cov, color=Virus)) +
   geom_point(size=1, alpha=0.7) +
+  geom_point(aes(x=3.495, y=0.623), color="#44AA99", size=2) +
   scale_color_manual(values = plot_colors) +
   scale_x_continuous(breaks = seq(0, 10, 2), limits=c(0, 10)) +
   scale_y_continuous(breaks = seq(0, 1.5, 0.5), limits=c(0, 1.5)) +
