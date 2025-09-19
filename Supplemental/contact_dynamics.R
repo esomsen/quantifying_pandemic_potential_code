@@ -242,3 +242,88 @@ panel_d <- ggplot(H3N2.infx.lengths, aes(x=donor_dose, y=duration)) +
 
 
 ggarrange(panel_a, panel_b, panel_c, panel_d, ncol=2, nrow=2, labels = c("A", "B", "C", "D"))
+
+
+# SENSITIVITY ANALYSIS ----------------------------------------------------
+
+### H1N1
+## ferret 5775; remove "rebound" positive test at 11 dpe
+H1N1_RC_ferrets[69,4] <- 0.5
+
+## duration of infection - H1N1
+
+alt.H1N1.infx.lengths <- data.frame()
+
+for (ferret in H1N1_recipient_names){
+  tmp.data <- H1N1_RC_ferrets %>%
+    filter(Ferret_ID == ferret)
+  ## assume that viral growth begins immediately following the last negative test
+  if (which.max(tmp.data$nw_titer > LOD) > 1){
+    tmp.pos.time <- tmp.data[[which.max(tmp.data$nw_titer > LOD)-1, "dpe"]]
+  } else { ## if the first positive test is the first test, assume that
+    ## the contact animal was infected immediately following exposure
+    tmp.pos.time <- 0
+  }
+  ## find the time infection resolves
+  tmp.post.infection <- tmp.data %>%
+    filter(dpe > tmp.pos.time)
+  if (tmp.post.infection[[length(tmp.post.infection$dpe), "nw_titer"]] > LOD){
+    ## if the animal doesn't resolve infection by the last measured timepoint, 
+    ## assume that infection would have resolved at the next test date 
+    tmp.end.time <- tmp.post.infection[[length(tmp.post.infection$dpe), "dpe"]] + 2
+  } else {
+    ## if the animal does resolve, just find the first time titers reach LOD again
+    tmp.end.time <- tmp.post.infection[[which.max(tmp.post.infection$nw_titer <= LOD), "dpe"]]
+  }
+  alt.H1N1.infx.lengths <- rbind(alt.H1N1.infx.lengths, cbind(tmp.data[1, 1:2], "duration"=tmp.end.time - tmp.pos.time))
+  ## tidy environment
+  rm(list=ls(pattern="^tmp"))
+}
+
+## linear regression for duration of infection
+alt.H1N1.infx.lengths$numeric_dose <- c(6, 6, 6, 6, 4, 4, 4, 4, 2, 2, 2, 2, 1, 1, 1, 1, 0, 0, 0)
+H1N1_duration_regression <- lm(duration ~ numeric_dose, alt.H1N1.infx.lengths)
+## no change
+
+
+### H3N2
+
+## ferret 626; remove initial positive test followed by a negative test
+H3N2_RC_ferrets[49,4] <- 0.5
+## ferret 2124; remove initial positive test followed by a negative test
+H3N2_RC_ferrets[2,4] <- 0.5
+
+## duration of infection - H3N2
+
+alt.H3N2.infx.lengths <- data.frame()
+
+for (ferret in H3N2_recipient_names){
+  tmp.data <- H3N2_RC_ferrets %>%
+    filter(Ferret_ID == ferret)
+  ## assume that viral growth begins immediately following the last negative test
+  if (which.max(tmp.data$nw_titer > LOD) > 1){
+    tmp.pos.time <- tmp.data[[which.max(tmp.data$nw_titer > LOD)-1, "dpe"]]
+  } else { ## if the first positive test is the first test, assume that
+    ## the contact animal was infected immediately following exposure
+    tmp.pos.time <- 0
+  }
+  ## find the time infection resolves
+  tmp.post.infection <- tmp.data %>%
+    filter(dpe > tmp.pos.time)
+  if (tmp.post.infection[[length(tmp.post.infection$dpe), "nw_titer"]] > LOD){
+    ## if the animal doesn't resolve infection by the last measured timepoint, 
+    ## assume that infection would have resolved at the next test date 
+    tmp.end.time <- tmp.post.infection[[length(tmp.post.infection$dpe), "dpe"]] + 2
+  } else {
+    ## if the animal does resolve, just find the first time titers reach LOD again
+    tmp.end.time <- tmp.post.infection[[which.max(tmp.post.infection$nw_titer <= LOD), "dpe"]]
+  }
+  alt.H3N2.infx.lengths <- rbind(alt.H3N2.infx.lengths, cbind(tmp.data[1, 1:2], "duration"=tmp.end.time - tmp.pos.time))
+  ## tidy environment
+  rm(list=ls(pattern="^tmp"))
+}
+
+## linear regression for duration of infection
+alt.H3N2.infx.lengths$numeric_dose <- c(6, 6, 6, 4, 4, 4, 4, 3, 2, 2, 1)
+H3N2_duration_regression <- lm(duration ~ numeric_dose, alt.H3N2.infx.lengths)
+## no change
