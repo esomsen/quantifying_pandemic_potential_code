@@ -284,7 +284,7 @@ prob.trace <- prob.trace %>%
 panel_a <- ggplot(prob.trace, aes(x=s, y=likelihood, color=virus)) +
   geom_line(linewidth=1.5) +
   scale_color_manual(values = c(plot_colors[[1]], plot_colors[[2]]), labels=c("Cal/2009", "Hong Kong/1968")) + 
-  labs(x="Transmissibility, s", y="Log likelihood", color="Virus") +
+  labs(x="Parameter s", y="Log likelihood", color="Virus") +
   geom_vline(xintercept=H1N1.MLE, color=plot_colors[1], linewidth=1, linetype = 2) +
   geom_vline(xintercept=H3N2.MLE, color=plot_colors[2], linewidth=1, linetype = 2) +
   annotate("rect", xmin=H1N1.CIs[1], xmax=H1N1.CIs[2], ymin=-90, ymax=-15, alpha=0.2, color=plot_colors[1], fill=plot_colors[1]) +
