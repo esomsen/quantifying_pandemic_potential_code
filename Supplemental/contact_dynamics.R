@@ -42,17 +42,18 @@ for (ferret in H1N1_recipient_names){
 }
 
 ## linear regression for peak titer value
-## use donor AUC
-#H1N1_peak_titer_regression <- lm(nw_titer ~ as.factor(donor_dose), H1N1.peak.titer)
+## make dose a numeric
+H1N1.peak.titer$numeric_dose <- c(6, 6, 6, 6, 4, 4, 4, 4, 2, 2, 2, 2, 1, 1, 1, 1, 0, 0, 0)
+H1N1_peak_titer_regression <- lm(nw_titer ~ numeric_dose, H1N1.peak.titer)
 
 panel_a <- ggplot(H1N1.peak.titer, aes(x=donor_dose, y=nw_titer)) +
   geom_point(size=2, fill=H1N1_color, color=H1N1_color) +
   ## add regression line
-  #geom_abline(slope = coef(H1N1_peak_titer_regression)[[2]], 
-   #           intercept = coef(H1N1_peak_titer_regression)[[1]], 
-    #          color=H1N1_color, linewidth=1) +
+  geom_abline(slope = coef(H1N1_peak_titer_regression)[[2]], 
+              intercept = coef(H1N1_peak_titer_regression)[[1]], 
+              color="black", linewidth=1) +
   guides(color = "none") +
-  labs(x="Index inoculum dose", y=expression(paste("Peak viral titer (", TCID[50],"/mL", ")"))) +
+  labs(x=expression(paste("Index inoculum dose (", TCID[50],"/mL", ")")), y=expression(paste("Peak viral titer (", TCID[50],"/mL", ")"))) +
   scale_y_continuous(limits=c(0, 7), breaks = seq(0, 7, 2), labels=c(expression(10^0), expression(10^2), expression(10^4), expression(10^6))) +
   scale_x_discrete(limits = c("10^0", "10^1", "10^2", "10^3", "10^4", "10^6"), 
                    labels=c(expression(10^0), expression(10^1), expression(10^2), expression(10^3), expression(10^4), expression(10^6))) +
@@ -90,15 +91,16 @@ for (ferret in H1N1_recipient_names){
 }
 
 ## linear regression for duration of infection
-#H1N1_duration_regression <- lm(duration ~ donor_AUC, H1N1_infx_lengths)
+H1N1.infx.lengths$numeric_dose <- c(6, 6, 6, 6, 4, 4, 4, 4, 2, 2, 2, 2, 1, 1, 1, 1, 0, 0, 0)
+H1N1_duration_regression <- lm(duration ~ numeric_dose, H1N1.infx.lengths)
 
 panel_b <- ggplot(H1N1.infx.lengths, aes(x=donor_dose, y=duration)) +
   geom_point(size=2, fill=H1N1_color, color=H1N1_color) +
   ## add regression line
-  #geom_abline(slope = coef(H1N1_duration_regression)[[2]], 
-   #           intercept = coef(H1N1_duration_regression)[[1]], 
-    #          color=H1N1_color, linewidth=1) +
-  labs(x="Index inoculum dose", y="Duration of infection (days)") +
+  geom_abline(slope = coef(H1N1_duration_regression)[[2]], 
+              intercept = coef(H1N1_duration_regression)[[1]], 
+              color="black", linewidth=1) +
+  labs(x=expression(paste("Index inoculum dose (", TCID[50],"/mL", ")")), y="Duration of infection (days)") +
   guides(color = "none") +
   scale_y_continuous(limits = c(0, 12), breaks = seq(0, 12, 2)) +
   scale_x_discrete(limits = c("10^0", "10^1", "10^2", "10^3", "10^4", "10^6"), 
@@ -174,17 +176,17 @@ for (ferret in H3N2_recipient_names){
 }
 
 ## linear regression for peak titer value
-## use donor AUC
-#H3N2_peak_titer_regression <- lm(nw_titer ~ as.factor(donor_dose), H3N2.peak.titer)
+H3N2.peak.titer$numeric_dose <- c(6, 6, 6, 4, 4, 4, 4, 3, 2, 2, 1)
+H3N2_peak_titer_regression <- lm(nw_titer ~ numeric_dose, H3N2.peak.titer)
 
 panel_c <- ggplot(H3N2.peak.titer, aes(x=donor_dose, y=nw_titer)) +
   geom_point(size=2, fill=H3N2_color, color=H3N2_color) +
   ## add regression line
-  #geom_abline(slope = coef(H3N2_peak_titer_regression)[[2]], 
-  #           intercept = coef(H3N2_peak_titer_regression)[[1]], 
-  #          color=H3N2_color, linewidth=1) +
+  geom_abline(slope = coef(H3N2_peak_titer_regression)[[2]], 
+             intercept = coef(H3N2_peak_titer_regression)[[1]], 
+              color="black", linewidth=1) +
   guides(color = "none") +
-  labs(x="Index inoculum dose", y=expression(paste("Peak viral titer (", TCID[50],"/mL", ")"))) +
+  labs(x=expression(paste("Index inoculum dose (", TCID[50],"/mL", ")")), y=expression(paste("Peak viral titer (", TCID[50],"/mL", ")"))) +
   scale_y_continuous(limits=c(0, 7), breaks = seq(0, 7, 2), labels=c(expression(10^0), expression(10^2), expression(10^4), expression(10^6))) +
   scale_x_discrete(limits = c("10^0", "10^1", "10^2", "10^3", "10^4", "10^6"), 
                    labels=c(expression(10^0), expression(10^1), expression(10^2), expression(10^3), expression(10^4), expression(10^6))) +
@@ -222,15 +224,16 @@ for (ferret in H3N2_recipient_names){
 }
 
 ## linear regression for duration of infection
-#H3N2_duration_regression <- lm(duration ~ donor_AUC, H3N2_infx_lengths)
+H3N2.infx.lengths$numeric_dose <- c(6, 6, 6, 4, 4, 4, 4, 3, 2, 2, 1)
+H3N2_duration_regression <- lm(duration ~ numeric_dose, H3N2.infx.lengths)
 
 panel_d <- ggplot(H3N2.infx.lengths, aes(x=donor_dose, y=duration)) +
   geom_point(size=2, fill=H3N2_color, color=H3N2_color) +
   ## add regression line
-  #geom_abline(slope = coef(H3N2_duration_regression)[[2]], 
-  #           intercept = coef(H3N2_duration_regression)[[1]], 
-  #          color=H3N2_color, linewidth=1) +
-  labs(x="Index inoculum dose", y="Duration of infection (days)") +
+  geom_abline(slope = coef(H3N2_duration_regression)[[2]], 
+             intercept = coef(H3N2_duration_regression)[[1]], 
+             color="black", linewidth=1) +
+  labs(x=expression(paste("Index inoculum dose (", TCID[50],"/mL", ")")), y="Duration of infection (days)") +
   guides(color = "none") +
   scale_y_continuous(limits = c(0, 12), breaks = seq(0, 12, 2)) +
   scale_x_discrete(limits = c("10^0", "10^1", "10^2", "10^3", "10^4", "10^6"), 
