@@ -222,6 +222,8 @@ for (ferret in H3N2_recipient_names){
   ## tidy environment
   rm(list=ls(pattern="^tmp"))
 }
+## fix value for 2124
+H3N2.infx.lengths[2,3] <- 11
 
 ## linear regression for duration of infection
 H3N2.infx.lengths$numeric_dose <- c(6, 6, 6, 4, 4, 4, 4, 3, 2, 2, 1)
