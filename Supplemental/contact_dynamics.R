@@ -284,9 +284,29 @@ for (ferret in H1N1_recipient_names){
 
 ## linear regression for duration of infection
 alt.H1N1.infx.lengths$numeric_dose <- c(6, 6, 6, 6, 4, 4, 4, 4, 2, 2, 2, 2, 1, 1, 1, 1, 0, 0, 0)
-H1N1_duration_regression <- lm(duration ~ numeric_dose, alt.H1N1.infx.lengths)
+alt_H1N1_duration_regression <- lm(duration ~ numeric_dose, alt.H1N1.infx.lengths)
 ## no change
 
+H1N1.infx.lengths$st <- "wt"
+alt.H1N1.infx.lengths$st <- "m"
+st.H1N1.infx.lengths <- rbind(H1N1.infx.lengths, alt.H1N1.infx.lengths)
+
+alt_panel_b <- ggplot(st.H1N1.infx.lengths, aes(x=donor_dose, y=duration, shape=st)) +
+  geom_beeswarm(cex=2,size=2, fill=H1N1_color, color=H1N1_color) +
+  ## add regression line
+  geom_abline(slope = coef(H1N1_duration_regression)[[2]], 
+              intercept = coef(H1N1_duration_regression)[[1]], 
+              color="black", linewidth=1) +
+  geom_abline(slope = coef(alt_H1N1_duration_regression)[[2]], 
+              intercept = coef(alt_H1N1_duration_regression)[[1]], 
+              color="black", linewidth=1, linetype=2) +
+  labs(x=expression(paste("Index inoculum dose (", TCID[50],"/mL", ")")), y="Duration of infection (days)") +
+  scale_shape_manual(values=c(1,19)) +
+  scale_y_continuous(limits = c(0, 12), breaks = seq(0, 12, 2)) +
+  scale_x_discrete(limits = c("10^0", "10^1", "10^2", "10^3", "10^4", "10^6"), 
+                   labels=c(expression(10^0), expression(10^1), expression(10^2), expression(10^3), expression(10^4), expression(10^6))) +
+  guides(shape="none") +
+  theme_light()
 
 ### H3N2
 
@@ -327,5 +347,28 @@ for (ferret in H3N2_recipient_names){
 
 ## linear regression for duration of infection
 alt.H3N2.infx.lengths$numeric_dose <- c(6, 6, 6, 4, 4, 4, 4, 3, 2, 2, 1)
-H3N2_duration_regression <- lm(duration ~ numeric_dose, alt.H3N2.infx.lengths)
+alt_H3N2_duration_regression <- lm(duration ~ numeric_dose, alt.H3N2.infx.lengths)
 ## no change
+
+H3N2.infx.lengths$st <- "wt"
+alt.H3N2.infx.lengths$st <- "m"
+st.H3N2.infx.lengths <- rbind(H3N2.infx.lengths, alt.H3N2.infx.lengths)
+
+alt_panel_d <- ggplot(st.H3N2.infx.lengths, aes(x=donor_dose, y=duration, shape=st)) +
+  geom_beeswarm(cex=2, size=2, fill=H3N2_color, color=H3N2_color) +
+  ## add regression line
+  geom_abline(slope = coef(H3N2_duration_regression)[[2]], 
+              intercept = coef(H3N2_duration_regression)[[1]], 
+              color="black", linewidth=1) +
+  geom_abline(slope = coef(alt_H3N2_duration_regression)[[2]], 
+              intercept = coef(alt_H3N2_duration_regression)[[1]], 
+              color="black", linewidth=1, linetype=2) +
+  scale_shape_manual(values=c(1,19)) +
+  labs(x=expression(paste("Index inoculum dose (", TCID[50],"/mL", ")")), y="Duration of infection (days)") +
+  guides(shape = "none") +
+  scale_y_continuous(limits = c(0, 12), breaks = seq(0, 12, 2)) +
+  scale_x_discrete(limits = c("10^0", "10^1", "10^2", "10^3", "10^4", "10^6"), 
+                   labels=c(expression(10^0), expression(10^1), expression(10^2), expression(10^3), expression(10^4), expression(10^6))) +
+  theme_light()
+
+ggarrange(panel_a, alt_panel_b, panel_c, alt_panel_d, ncol=2, nrow=2, labels = c("A", "B", "C", "D"))
