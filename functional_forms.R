@@ -345,7 +345,7 @@ linear.lambda.plot <- ggplot(linear.lambdas, aes(x=VL, y=lambda, color=Virus)) +
   scale_fill_manual(values = c(plot_colors[[1]], plot_colors[[2]]), labels=c("Cal/2009", "Hong Kong/1968")) + 
   guides(color="none", fill="none", alpha="none") +
   scale_x_continuous(limits=c(0, 8), breaks = seq(0, 8, 2), labels=c(expression(10^0), expression(10^2), expression(10^4), expression(10^6), expression(10^8))) +
-  scale_y_continuous(limits=c(0, 3)) +
+  scale_y_continuous(limits=c(0, 3), labels = c("0.0", "1.0", "2.0", "3.0")) +
   labs(x=expression(paste("Viral titer (", TCID[50], "/mL)")), y="Force of infection") +
   theme_classic()
 
@@ -362,7 +362,7 @@ linear.prob.plot <- ggplot(linear.probs, aes(x=VL, y=prob, color=Virus)) +
   scale_fill_manual(values = c(plot_colors[[1]], plot_colors[[2]]), labels=c("Cal/2009", "Hong Kong/1968")) + 
   guides(color="none", fill="none", alpha="none") +
   scale_x_continuous(limits=c(0, 8), breaks = seq(0, 8, 2), labels=c(expression(10^0), expression(10^2), expression(10^4), expression(10^6), expression(10^8))) +
-  scale_y_continuous(limits=c(0, 1)) +
+  scale_y_continuous(limits=c(0, 1), breaks = seq(0, 1, 0.2)) +
   labs(x=expression(paste("Viral titer (", TCID[50], "/mL)")), y="Probability of transmission") +
   theme_classic()
 
@@ -618,7 +618,7 @@ threshold.lambda.plot <- ggplot(threshold.lambdas, aes(x=VL, y=lambda, color=Vir
   scale_fill_manual(values = c(plot_colors[[1]], plot_colors[[2]]), labels=c("Cal/2009", "Hong Kong/1968")) + 
   guides(color="none", fill="none", alpha="none") +
   scale_x_continuous(limits=c(0, 8), breaks = seq(0, 8, 2), labels=c(expression(10^0), expression(10^2), expression(10^4), expression(10^6), expression(10^8))) +
-  scale_y_continuous(limits=c(0, 3)) +
+  scale_y_continuous(limits=c(0, 3), labels = c("0.0", "1.0", "2.0", "3.0")) +
   labs(x=expression(paste("Viral titer (", TCID[50], "/mL)")), y="Force of infection") +
   theme_classic()
 
@@ -635,7 +635,7 @@ threshold.prob.plot <- ggplot(threshold.probs, aes(x=VL, y=prob, color=Virus)) +
   scale_fill_manual(values = c(plot_colors[[1]], plot_colors[[2]]), labels=c("Cal/2009", "Hong Kong/1968")) + 
   guides(color="none", fill="none", alpha="none") +
   scale_x_continuous(limits=c(0, 8), breaks = seq(0, 8, 2), labels=c(expression(10^0), expression(10^2), expression(10^4), expression(10^6), expression(10^8))) +
-  scale_y_continuous(limits=c(0, 1)) +
+  scale_y_continuous(limits=c(0, 1), breaks=seq(0, 1, 0.2)) +
   labs(x=expression(paste("Viral titer (", TCID[50], "/mL)")), y="Probability of transmission") +
   theme_classic()
 
@@ -928,7 +928,7 @@ hill.lambda.plot <- ggplot(hill.lambdas, aes(x=VL, y=lambda, color=Virus)) +
   scale_fill_manual(values = c(plot_colors[[1]], plot_colors[[2]]), labels=c("Cal/2009", "Hong Kong/1968")) + 
   guides(color="none", fill="none", alpha="none") +
   scale_x_continuous(limits=c(0, 8), breaks = seq(0, 8, 2), labels=c(expression(10^0), expression(10^2), expression(10^4), expression(10^6), expression(10^8))) +
-  scale_y_continuous(limits=c(0, 3)) +
+  scale_y_continuous(limits=c(0, 3), labels = c("0.0", "1.0", "2.0", "3.0")) +
   labs(x=expression(paste("Viral titer (", TCID[50], "/mL)")), y="Force of infection") +
   theme_classic()
 
@@ -945,7 +945,7 @@ hill.prob.plot <- ggplot(hill.probs, aes(x=VL, y=prob, color=Virus)) +
   scale_fill_manual(values = c(plot_colors[[1]], plot_colors[[2]]), labels=c("Cal/2009", "Hong Kong/1968")) + 
   guides(color="none", fill="none", alpha="none") +
   scale_x_continuous(limits=c(0, 8), breaks = seq(0, 8, 2), labels=c(expression(10^0), expression(10^2), expression(10^4), expression(10^6), expression(10^8))) +
-  scale_y_continuous(limits=c(0, 1)) +
+  scale_y_continuous(limits=c(0, 1), breaks=seq(0, 1, 0.2)) +
   labs(x=expression(paste("Viral titer (", TCID[50], "/mL)")), y="Probability of transmission") +
   theme_classic()
 
@@ -1003,7 +1003,7 @@ log.lambda.plot <- ggplot(log.lambdas, aes(x=VL, y=lambda, color=Virus)) +
   scale_fill_manual(values = c(plot_colors[[1]], plot_colors[[2]]), labels=c("Cal/2009", "Hong Kong/1968")) + 
   guides(color="none", fill="none", alpha="none") +
   scale_x_continuous(limits=c(0, 8), breaks = seq(0, 8, 2), labels=c(expression(10^0), expression(10^2), expression(10^4), expression(10^6), expression(10^8))) +
-  scale_y_continuous(limits=c(0, 3)) +
+  scale_y_continuous(limits=c(0, 3), labels = c("0.0", "1.0", "2.0", "3.0")) +
   labs(x=expression(paste("Viral titer (", TCID[50], "/mL)")), y="Force of infection") +
   theme_classic()
 
@@ -1020,7 +1020,7 @@ log.prob.plot <- ggplot(log.probs, aes(x=VL, y=prob, color=Virus)) +
   scale_fill_manual(values = c(plot_colors[[1]], plot_colors[[2]]), labels=c("Cal/2009", "Hong Kong/1968")) + 
   guides(color="none", fill="none", alpha="none") +
   scale_x_continuous(limits=c(0, 8), breaks = seq(0, 8, 2), labels=c(expression(10^0), expression(10^2), expression(10^4), expression(10^6), expression(10^8))) +
-  scale_y_continuous(limits=c(0, 1)) +
+  scale_y_continuous(limits=c(0, 1), breaks=seq(0, 1, 0.2)) +
   labs(x=expression(paste("Viral titer (", TCID[50], "/mL)")), y="Probability of transmission") +
   theme_classic()
 
