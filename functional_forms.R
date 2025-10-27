@@ -1024,9 +1024,12 @@ log.prob.plot <- ggplot(log.probs, aes(x=VL, y=prob, color=Virus)) +
   labs(x=expression(paste("Viral titer (", TCID[50], "/mL)")), y="Probability of transmission") +
   theme_classic()
 
-top <- ggarrange(log.lambda.plot, linear.lambda.plot, threshold.lambda.plot, hill.lambda.plot, ncol=4, 
-          common.legend = T, legend = "bottom", labels=c("A", "B", "C", "D"))
-bottom <- ggarrange(log.prob.plot, linear.prob.plot, threshold.prob.plot, hill.prob.plot, ncol=4, 
-          labels = c("E", "F", "G", "H"))
-
-ggarrange(top, bottom, nrow=2, common.legend = T, legend="bottom")
+col1 <- ggarrange(log.lambda.plot, log.prob.plot, nrow=2, labels=c("A", "E"))
+col1 <- annotate_figure(col1, top=text_grob(bquote(Log[10])))
+col2 <- ggarrange(linear.lambda.plot, linear.prob.plot, nrow=2, labels=c("B", "F"))
+col2 <- annotate_figure(col2, top="Linear")
+col3 <- ggarrange(threshold.lambda.plot, threshold.prob.plot, nrow=2, labels=c("C", "G"))
+col3 <- annotate_figure(col3, top="Threshold")
+col4 <- ggarrange(hill.lambda.plot, hill.prob.plot, nrow=2, labels=c("D", "H"))
+col4 <- annotate_figure(col4, top="Hill")
+ggarrange(col1, col2, col3, col4, ncol=4, align="v")
