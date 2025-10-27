@@ -166,7 +166,7 @@ for (i in 1:its){
 
 panel_a <- ggplot(as.data.frame(H1N1.indv.Z[,14]), aes(x=H1N1.indv.Z[, 14])) +
   geom_histogram(closed="right", center=1, binwidth=0.5, fill=plot_colors[[1]]) +
-  labs(x="Number of secondary cases", y="Number") +
+  labs(x="Number of secondary cases", y="Count") +
   scale_x_continuous(breaks=c(0, 1, 2, 3, 4, 5), limits=c(-0.5, 5.5)) +
   ylim(0, 7) +
   theme_light()
@@ -175,7 +175,7 @@ panel_a <- ggplot(as.data.frame(H1N1.indv.Z[,14]), aes(x=H1N1.indv.Z[, 14])) +
 
 panel_c <- ggplot(as.data.frame(H1N1.gen.times[,14]), aes(x=H1N1.gen.times[, 14])) +
   geom_histogram(closed="right", center=1, binwidth=0.25, fill=plot_colors[[1]]) +
-  labs(x="Generation time (days)", y="Number") +
+  labs(x="Generation time (days)", y="Count") +
   scale_x_continuous(breaks=seq(0, 10, 2), limits=c(-0.5, 10.5)) +
   ylim(0, 5) +
   theme_light()
@@ -336,7 +336,7 @@ for (i in 1:its){
 
 panel_b <- ggplot(as.data.frame(H3N2.indv.Z[,4]), aes(x=H3N2.indv.Z[,4])) +
   geom_histogram(closed="right", center=1, binwidth=0.5, fill=plot_colors[[2]]) +
-  labs(x="Number of secondary cases", y="Number") +
+  labs(x="Number of secondary cases", y="Count") +
   scale_x_continuous(breaks=c(0, 1, 2, 3, 4, 5), limits=c(-0.5, 5.5)) +
   ylim(0, 7) +
   theme_light()
@@ -345,7 +345,7 @@ panel_b <- ggplot(as.data.frame(H3N2.indv.Z[,4]), aes(x=H3N2.indv.Z[,4])) +
 
 panel_d <- ggplot(as.data.frame(H3N2.gen.times[,4]), aes(x=H3N2.gen.times[,4])) +
   geom_histogram(closed="right", center=1, binwidth=0.25, fill=plot_colors[[2]]) +
-  labs(x="Generation time (days)", y="Number") +
+  labs(x="Generation time (days)", y="Count") +
   scale_x_continuous(breaks=seq(0, 10, 2), limits=c(-0.5, 10.5)) +
   ylim(0, 5) +
   theme_light()
@@ -388,7 +388,7 @@ panel_e <- ggplot(mu.vals, aes(x=mu, fill=Virus, color=Virus)) +
   scale_fill_manual(values = plot_colors, labels=c("Cal/2009", "Hong Kong/1968")) +
   scale_color_manual(values = plot_colors, labels=c("Cal/2009", "Hong Kong/1968")) +
   xlim(0, 4) +
-  labs(x=expression(paste("Basic reproductive number ", R[0])), y="Density") +
+  labs(x=expression(paste("Basic reproduction number ", R[0])), y="Density") +
   theme_light() +
   theme(legend.position= "inside", legend.position.inside = c(0.8, 0.8), 
         legend.key.size = unit(0.8, "cm"), legend.title = element_text(size=12), legend.text = element_text(size=10))
@@ -431,7 +431,7 @@ panel_g <- ggplot(gamma.mean.cov, aes(x=mean, y=cov, color=Virus)) +
   scale_color_manual(values = plot_colors) +
   scale_x_continuous(breaks = seq(0, 8, 2), limits=c(0, 8)) +
   scale_y_continuous(breaks = seq(0, 1.5, 0.5), limits=c(0, 1.5)) +
-  labs(x=expression(paste("Mean generation time ", T[c], " (days)")), y="Coefficient of variation") + 
+  labs(x=expression("Mean generation time (days)"), y="Coefficient of variation") + 
   theme_light() +
   theme(legend.position = "none")
 
