@@ -15,7 +15,7 @@ colnames(ferrets) <- c("Ferret_ID", "DI_RC", "DI_RC_Pair", "Dose", "dpi", "nw_ti
 all_10.6 <- ferrets %>%
   filter(Dose == "10^6" | donor_dose == "10^6") %>%
   mutate(dpch = dpi - 1) %>%
-  mutate(LOD_shape = ifelse(nw_titer <= LOD, "below", "above")) 
+  mutate(LOD_shape = ifelse(nw_titer < LOD, "below", "above")) 
 
 all_10.6$pair_shape <- c(rep(0, nrow(all_10.6)))
 
@@ -38,7 +38,7 @@ all_10.6$shape_combo <- paste(all_10.6$LOD_shape, "-", all_10.6$pair_shape)
 all_10.4 <- ferrets %>%
   filter(Dose == "10^4" | donor_dose == "10^4") %>%
   mutate(dpch = dpi - 1) %>%
-  mutate(LOD_shape = ifelse(nw_titer <= LOD, "below", "above")) 
+  mutate(LOD_shape = ifelse(nw_titer < LOD, "below", "above")) 
 
 all_10.4$pair_shape <- c(rep(0, nrow(all_10.4)))
 
@@ -61,7 +61,7 @@ all_10.4$shape_combo <- paste(all_10.4$LOD_shape, "-", all_10.4$pair_shape)
 all_10.2 <- ferrets %>%
   filter(Dose == "10^2" | donor_dose == "10^2") %>%
   mutate(dpch = dpi - 1) %>%
-  mutate(LOD_shape = ifelse(nw_titer <= LOD, "below", "above")) 
+  mutate(LOD_shape = ifelse(nw_titer < LOD, "below", "above")) 
 
 all_10.2$pair_shape <- c(rep(0, nrow(all_10.2)))
 
@@ -84,7 +84,7 @@ all_10.2$shape_combo <- paste(all_10.2$LOD_shape, "-", all_10.2$pair_shape)
 all_10.1 <- ferrets %>%
   filter(Dose == "10^1" | donor_dose == "10^1") %>%
   mutate(dpch = dpi - 1) %>%
-  mutate(LOD_shape = ifelse(nw_titer <= LOD, "below", "above")) 
+  mutate(LOD_shape = ifelse(nw_titer < LOD, "below", "above")) 
 
 all_10.1$pair_shape <- c(rep(0, nrow(all_10.1)))
 
@@ -107,7 +107,7 @@ all_10.1$shape_combo <- paste(all_10.1$LOD_shape, "-", all_10.1$pair_shape)
 all_10.0 <- ferrets %>%
   filter(Dose == "10^0" | donor_dose == "10^0") %>%
   mutate(dpch = dpi - 1) %>%
-  mutate(LOD_shape = ifelse(nw_titer <= LOD, "below", "above")) 
+  mutate(LOD_shape = ifelse(nw_titer < LOD, "below", "above")) 
 
 all_10.0$pair_shape <- c(rep(0, nrow(all_10.1)))
 
