@@ -137,7 +137,7 @@ panel_d <- ggplot(combined.growth.rates, aes(x=contact.rate, y=rate, color=Virus
   geom_line(linewidth=2) +
   scale_color_manual(values = c(plot_colors[[1]], plot_colors[[2]])) + 
   guides(color="none") +
-  labs(x="Average number of contacts per day", y="Intrinsic growth rate") +
+  labs(x="Average number of contacts per day", y=expression(paste("Intrinsic growth rate, r (", days^-1, ")"))) +
   theme_light()
 
 top <- ggarrange(panel_a, panel_b, ncol=2, align="h", common.legend = T, legend = "top", labels=c("A", "B"))
@@ -277,7 +277,7 @@ panel_d <- ggplot(combined.growth.rates, aes(x=contact.rate, y=rate, color=Virus
   geom_line(linewidth=2) +
   scale_color_manual(values = c(plot_colors[[1]], plot_colors[[2]])) + 
   guides(color="none") +
-  labs(x="Average number of contacts per day", y="Intrinsic growth rate") +
+  labs(x="Average number of contacts per day", y=expression(paste("Intrinsic growth rate, r (", days^-1, ")"))) +
   theme_light()
 
 
@@ -417,7 +417,7 @@ panel_d <- ggplot(combined.growth.rates, aes(x=contact.rate, y=rate, color=Virus
   geom_line(linewidth=2) +
   scale_color_manual(values = c(plot_colors[[1]], plot_colors[[2]])) + 
   guides(color="none") +
-  labs(x="Average number of contacts per day", y="Intrinsic growth rate") +
+  labs(x="Average number of contacts per day", y=expression(paste("Intrinsic growth rate, r (", days^-1, ")"))) +
   theme_light()
 
 
