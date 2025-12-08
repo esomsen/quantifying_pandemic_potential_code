@@ -33,7 +33,7 @@ panel_a <- ggplot(R0.CIs, aes(x=contact.nums, y=R0, ymin=lower, ymax=upper, fill
   guides(fill="none", colour = guide_legend(override.aes = list(fill=NA,
                                                                 linetype=c(0,0)))) +
   scale_y_continuous(limits=c(0, 4), breaks=seq(0, 4, 1)) +
-  labs(x="Average number of contacts per day", y=expression(R[0])) +
+  labs(x="Number of contacts per day", y=expression(R[0])) +
   theme_light() +
   theme(legend.position = "bottom")
 
@@ -73,7 +73,7 @@ panel_b <- ggplot(extinction.probs, aes(x=contact.nums, y=1-prob.extinction, col
   scale_color_manual(values = c(plot_colors[1], plot_colors[1], plot_colors[2], plot_colors[2])) +
   scale_linetype_manual(values=c(2, 1, 2, 1)) +
   guides(color="none", linetype="none") +
-  labs(x="Average number of contacts per day", y="Probability of establishment") +
+  labs(x="Number of contacts per day", y="Probability of establishment") +
   theme_light()
 
 # stuttering chains -------------------------------------------------------
@@ -117,7 +117,7 @@ panel_c <- ggplot(chain.lengths, aes(x=as.numeric(contact.nums), y=mu, color=Sub
   scale_x_continuous(breaks=seq(5, 25, 5), limits=c(5, 25)) +
   scale_y_continuous(breaks=seq(0, 40, 5), limits=c(0, 37)) +
   guides(color="none") +
-  labs(x="Average number of contacts per day", y="Average length of stuttering chain") +
+  labs(x="Number of contacts per day", y="Average length of stuttering chain") +
   theme_light() 
 
 # intrinsic growth rate ---------------------------------------------------
@@ -139,7 +139,7 @@ panel_d <- ggplot(combined.growth.rates, aes(x=contact.rate, y=rate, color=Virus
   geom_line(linewidth=2) +
   scale_color_manual(values = c(plot_colors[[1]], plot_colors[[2]])) + 
   guides(color="none") +
-  labs(x="Average number of contacts per day", y=expression(paste("Intrinsic growth rate, r (", days^-1, ")"))) +
+  labs(x="Number of contacts per day", y=expression(paste("Intrinsic growth rate, r (", days^-1, ")"))) +
   theme_light()
 
 # plot -------------------------------------------------------------------
